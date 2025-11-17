@@ -115,6 +115,7 @@ const VisualizationSlide: React.FC<VisualizationSlideProps> = ({
             onNodeClick={handleNodeClick}
             selectedNodeId={selectedPaper?.id}
             searchMode={view.graph.searchMode}
+            isExpanding={isExpanding}
           />
           
           {/* 그래프 컨트롤 */}

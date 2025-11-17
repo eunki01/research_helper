@@ -208,7 +208,7 @@ const GraphComponent: React.FC<GraphComponentProps> = ({
               id: edge.id,
               source: edge.source,
               target: edge.target,
-              score: edge.score || edge.similarity, // 두 필드 모두 지원
+              score: edge.similarity, // 두 필드 모두 지원
               type: edge.type
             }
           });
@@ -273,7 +273,7 @@ const GraphComponent: React.FC<GraphComponentProps> = ({
       .map(edge => ({
         source: edge.source,
         target: edge.target,
-        score: edge.score || edge.similarity,
+        score: edge.similarity,
         type: edge.type
       }));
     

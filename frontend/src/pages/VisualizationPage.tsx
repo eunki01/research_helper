@@ -6,7 +6,7 @@ import type { VisualizationView } from '../types/visualization';
 interface VisualizationPageProps {
   views: VisualizationView[];
   currentViewIndex: number;
-  onNodeClick: (nodeId: string) => void;
+  onNodeClick: (nodeId: string) => Promise<void>;
   onNavigateToView: (viewIndex: number) => void;
 }
 

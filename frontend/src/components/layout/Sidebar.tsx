@@ -67,10 +67,10 @@ const Sidebar: React.FC<SidebarProps> = ({
           </div>
 
           {/* 발행 정보 */}
-          {selectedPaper.publication_date && (
+          {selectedPaper.publicationDate && (
             <div>
               <h3 className="text-sm font-medium text-gray-500 mb-1">발행일</h3>
-              <p className="text-gray-900">{selectedPaper.publication_date}</p>
+              <p className="text-gray-900">{selectedPaper.publicationDate}</p>
             </div>
           )}
 
@@ -83,10 +83,10 @@ const Sidebar: React.FC<SidebarProps> = ({
           )}
 
           {/* 인용 횟수 */}
-          {selectedPaper.citation_count && (
+          {selectedPaper.citationCount && (
             <div>
               <h3 className="text-sm font-medium text-gray-500 mb-1">인용 횟수</h3>
-              <p className="text-gray-900">{selectedPaper.citation_count.toLocaleString()}회</p>
+              <p className="text-gray-900">{selectedPaper.citationCount.toLocaleString()}회</p>
             </div>
           )}
 
@@ -114,11 +114,11 @@ const Sidebar: React.FC<SidebarProps> = ({
           )}
 
           {/* 연구 분야 */}
-          {selectedPaper.fields_of_study && selectedPaper.fields_of_study.length > 0 && (
+          {selectedPaper.fieldsOfStudy && selectedPaper.fieldsOfStudy.length > 0 && (
             <div>
               <h3 className="text-sm font-medium text-gray-500 mb-1">연구 분야</h3>
               <div className="flex flex-wrap gap-1">
-              {selectedPaper.fields_of_study.map((field) => (
+              {selectedPaper.fieldsOfStudy.map((field) => (
                 <span key={field} className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded">
                   {field}
                 </span>

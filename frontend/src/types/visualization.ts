@@ -1,5 +1,7 @@
 // 시각화 관련 타입 정의
 
+import type { PaperGraph } from './paper';
+
 export interface VisualizationState {
   currentViewIndex: number;
   views: VisualizationView[];
@@ -48,5 +50,3 @@ export interface ThemeConfig {
 
 // Re-export from paper.ts
 export type { PaperGraph, PaperNode, PaperEdge } from './paper';
-
-
