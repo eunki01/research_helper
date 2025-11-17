@@ -1,0 +1,275 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "C:\\Users\\82106\\git\\research_helper\\frontend\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\82106\\git\\research_helper\\frontend\\src\\App.tsx||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:src\\App.tsx||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\82106\\git\\research_helper\\frontend\\tailwind.config.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:tailwind.config.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\82106\\git\\research_helper\\frontend\\src\\pages\\SignupPage.tsx||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:src\\pages\\SignupPage.tsx||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\82106\\git\\research_helper\\frontend\\src\\pages\\HomePage.tsx||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:src\\pages\\HomePage.tsx||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\82106\\git\\research_helper\\frontend\\src\\pages\\LibraryPage.tsx||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:src\\pages\\LibraryPage.tsx||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\82106\\git\\research_helper\\frontend\\src\\services\\AuthService.ts||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:src\\services\\AuthService.ts||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\82106\\git\\research_helper\\frontend\\src\\utils\\nodeSizeCalculator.ts||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:src\\utils\\nodeSizeCalculator.ts||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\82106\\git\\research_helper\\frontend\\src\\context\\AuthContext.tsx||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:src\\context\\AuthContext.tsx||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\82106\\git\\research_helper\\frontend\\src\\utils\\validation.ts||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:src\\utils\\validation.ts||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\82106\\git\\research_helper\\frontend\\src\\types\\auth.ts||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:src\\types\\auth.ts||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\82106\\git\\research_helper\\frontend\\src\\context\\ThemeContext.tsx||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:src\\context\\ThemeContext.tsx||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\82106\\git\\research_helper\\frontend\\src\\services\\apiService.ts||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:src\\services\\apiService.ts||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\82106\\git\\research_helper\\frontend\\src\\pages\\LoginPage.tsx||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:src\\pages\\LoginPage.tsx||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\82106\\git\\research_helper\\frontend\\src\\components\\auth\\AuthButton.tsx||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:src\\components\\auth\\AuthButton.tsx||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\82106\\git\\research_helper\\frontend\\src\\components\\auth\\AuthInput.tsx||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:src\\components\\auth\\AuthInput.tsx||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 7,
+          "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "tailwind.config.js",
+              "DocumentMoniker": "C:\\Users\\82106\\git\\research_helper\\frontend\\tailwind.config.js",
+              "RelativeDocumentMoniker": "tailwind.config.js",
+              "ToolTip": "C:\\Users\\82106\\git\\research_helper\\frontend\\tailwind.config.js",
+              "RelativeToolTip": "tailwind.config.js",
+              "ViewState": "AgIAAAAAAAAAAAAAAADwvwwAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
+              "WhenOpened": "2025-11-17T13:16:34.515Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "HomePage.tsx",
+              "DocumentMoniker": "C:\\Users\\82106\\git\\research_helper\\frontend\\src\\pages\\HomePage.tsx",
+              "RelativeDocumentMoniker": "src\\pages\\HomePage.tsx",
+              "ToolTip": "C:\\Users\\82106\\git\\research_helper\\frontend\\src\\pages\\HomePage.tsx",
+              "RelativeToolTip": "src\\pages\\HomePage.tsx",
+              "ViewState": "AgIAAAAAAAAAAAAAAADwvwAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003213|",
+              "WhenOpened": "2025-11-17T13:14:02.358Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "LibraryPage.tsx",
+              "DocumentMoniker": "C:\\Users\\82106\\git\\research_helper\\frontend\\src\\pages\\LibraryPage.tsx",
+              "RelativeDocumentMoniker": "src\\pages\\LibraryPage.tsx",
+              "ToolTip": "C:\\Users\\82106\\git\\research_helper\\frontend\\src\\pages\\LibraryPage.tsx",
+              "RelativeToolTip": "src\\pages\\LibraryPage.tsx",
+              "ViewState": "AgIAAAAAAAAAAAAAAADwvwAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003213|",
+              "WhenOpened": "2025-11-17T13:14:00.942Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "nodeSizeCalculator.ts",
+              "DocumentMoniker": "C:\\Users\\82106\\git\\research_helper\\frontend\\src\\utils\\nodeSizeCalculator.ts",
+              "RelativeDocumentMoniker": "src\\utils\\nodeSizeCalculator.ts",
+              "ToolTip": "C:\\Users\\82106\\git\\research_helper\\frontend\\src\\utils\\nodeSizeCalculator.ts",
+              "RelativeToolTip": "src\\utils\\nodeSizeCalculator.ts",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003213|",
+              "WhenOpened": "2025-11-17T13:13:27.617Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 8,
+              "Title": "validation.ts",
+              "DocumentMoniker": "C:\\Users\\82106\\git\\research_helper\\frontend\\src\\utils\\validation.ts",
+              "RelativeDocumentMoniker": "src\\utils\\validation.ts",
+              "ToolTip": "C:\\Users\\82106\\git\\research_helper\\frontend\\src\\utils\\validation.ts",
+              "RelativeToolTip": "src\\utils\\validation.ts",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABYAAAACAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003213|",
+              "WhenOpened": "2025-11-17T13:09:43.424Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 7,
+              "Title": "AuthContext.tsx",
+              "DocumentMoniker": "C:\\Users\\82106\\git\\research_helper\\frontend\\src\\context\\AuthContext.tsx",
+              "RelativeDocumentMoniker": "src\\context\\AuthContext.tsx",
+              "ToolTip": "C:\\Users\\82106\\git\\research_helper\\frontend\\src\\context\\AuthContext.tsx",
+              "RelativeToolTip": "src\\context\\AuthContext.tsx",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAEEAAAAQAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003213|",
+              "WhenOpened": "2025-11-17T13:09:14.741Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "AuthService.ts",
+              "DocumentMoniker": "C:\\Users\\82106\\git\\research_helper\\frontend\\src\\services\\AuthService.ts",
+              "RelativeDocumentMoniker": "src\\services\\AuthService.ts",
+              "ToolTip": "C:\\Users\\82106\\git\\research_helper\\frontend\\src\\services\\AuthService.ts",
+              "RelativeToolTip": "src\\services\\AuthService.ts",
+              "ViewState": "AgIAAEwAAAAAAAAAAAAQwFoAAAAbAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003213|",
+              "WhenOpened": "2025-11-17T13:08:31.031Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "App.tsx",
+              "DocumentMoniker": "C:\\Users\\82106\\git\\research_helper\\frontend\\src\\App.tsx",
+              "RelativeDocumentMoniker": "src\\App.tsx",
+              "ToolTip": "C:\\Users\\82106\\git\\research_helper\\frontend\\src\\App.tsx",
+              "RelativeToolTip": "src\\App.tsx",
+              "ViewState": "AgIAAO0AAAAAAAAAAAAAAAEBAAAKAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003213|",
+              "WhenOpened": "2025-11-17T13:04:36.742Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 9,
+              "Title": "auth.ts",
+              "DocumentMoniker": "C:\\Users\\82106\\git\\research_helper\\frontend\\src\\types\\auth.ts",
+              "RelativeDocumentMoniker": "src\\types\\auth.ts",
+              "ToolTip": "C:\\Users\\82106\\git\\research_helper\\frontend\\src\\types\\auth.ts",
+              "RelativeToolTip": "src\\types\\auth.ts",
+              "ViewState": "AgIAAA8AAAAAAAAAAAA0wBkAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003213|",
+              "WhenOpened": "2025-11-17T13:08:09.083Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "SignupPage.tsx",
+              "DocumentMoniker": "C:\\Users\\82106\\git\\research_helper\\frontend\\src\\pages\\SignupPage.tsx",
+              "RelativeDocumentMoniker": "src\\pages\\SignupPage.tsx",
+              "ToolTip": "C:\\Users\\82106\\git\\research_helper\\frontend\\src\\pages\\SignupPage.tsx",
+              "RelativeToolTip": "src\\pages\\SignupPage.tsx",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAwAAAAxAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003213|",
+              "WhenOpened": "2025-11-17T13:04:06.85Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 10,
+              "Title": "ThemeContext.tsx",
+              "DocumentMoniker": "C:\\Users\\82106\\git\\research_helper\\frontend\\src\\context\\ThemeContext.tsx",
+              "RelativeDocumentMoniker": "src\\context\\ThemeContext.tsx",
+              "ToolTip": "C:\\Users\\82106\\git\\research_helper\\frontend\\src\\context\\ThemeContext.tsx",
+              "RelativeToolTip": "src\\context\\ThemeContext.tsx",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003213|",
+              "WhenOpened": "2025-11-17T13:07:21.629Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 11,
+              "Title": "apiService.ts",
+              "DocumentMoniker": "C:\\Users\\82106\\git\\research_helper\\frontend\\src\\services\\apiService.ts",
+              "RelativeDocumentMoniker": "src\\services\\apiService.ts",
+              "ToolTip": "C:\\Users\\82106\\git\\research_helper\\frontend\\src\\services\\apiService.ts",
+              "RelativeToolTip": "src\\services\\apiService.ts",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003213|",
+              "WhenOpened": "2025-11-17T13:05:36.769Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 12,
+              "Title": "LoginPage.tsx",
+              "DocumentMoniker": "C:\\Users\\82106\\git\\research_helper\\frontend\\src\\pages\\LoginPage.tsx",
+              "RelativeDocumentMoniker": "src\\pages\\LoginPage.tsx",
+              "ToolTip": "C:\\Users\\82106\\git\\research_helper\\frontend\\src\\pages\\LoginPage.tsx",
+              "RelativeToolTip": "src\\pages\\LoginPage.tsx",
+              "ViewState": "AgIAAHcAAAAAAAAAAAAQwI4AAAAZAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003213|",
+              "WhenOpened": "2025-11-17T13:03:43.861Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 13,
+              "Title": "AuthButton.tsx",
+              "DocumentMoniker": "C:\\Users\\82106\\git\\research_helper\\frontend\\src\\components\\auth\\AuthButton.tsx",
+              "RelativeDocumentMoniker": "src\\components\\auth\\AuthButton.tsx",
+              "ToolTip": "C:\\Users\\82106\\git\\research_helper\\frontend\\src\\components\\auth\\AuthButton.tsx",
+              "RelativeToolTip": "src\\components\\auth\\AuthButton.tsx",
+              "ViewState": "AgIAABEAAAAAAAAAAAAQwCIAAAAaAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003213|",
+              "WhenOpened": "2025-11-17T13:03:15.588Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 14,
+              "Title": "AuthInput.tsx",
+              "DocumentMoniker": "C:\\Users\\82106\\git\\research_helper\\frontend\\src\\components\\auth\\AuthInput.tsx",
+              "RelativeDocumentMoniker": "src\\components\\auth\\AuthInput.tsx",
+              "ToolTip": "C:\\Users\\82106\\git\\research_helper\\frontend\\src\\components\\auth\\AuthInput.tsx",
+              "RelativeToolTip": "src\\components\\auth\\AuthInput.tsx",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAACoAAAAZAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003213|",
+              "WhenOpened": "2025-11-17T13:03:07.03Z",
+              "EditorCaption": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
