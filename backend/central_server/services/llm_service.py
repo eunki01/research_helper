@@ -1,7 +1,7 @@
 # services/llm_service.py
 import logging
 from openai import AsyncOpenAI
-from core.config import settings
+from central_server.core.config import settings
 
 logger = logging.getLogger(__name__)
 
@@ -76,8 +76,3 @@ class LLMService:
             logger.error(f"키워드 확장 실패: {str(e)}")
             # 오류 발생 시 원본 쿼리를 그대로 반환
             return query
-    
-def get_llm_service() -> LLMService:
-    """FastAPI Depends를 위한 LLMService 인스턴스 반환 함수"""
-    # 필요시 여기서 인스턴스 생성 또는 기존 인스턴스 반환
-    return LLMService() # 간단하게 매번 생성 (API 키 상태만 가짐)
