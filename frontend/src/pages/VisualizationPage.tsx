@@ -22,7 +22,7 @@ const VisualizationPage: React.FC<VisualizationPageProps> = ({
       currentViewIndex={currentViewIndex}
       onNavigateToView={onNavigateToView}
     >
-      {views.map((view, index) => (
+      {views.map((view) => (
         <VisualizationSlide
           key={view.id}
           view={view}

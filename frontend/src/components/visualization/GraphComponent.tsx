@@ -148,16 +148,16 @@ class GraphUtils {
 // ==================== 메인 컴포넌트 ====================
 interface GraphComponentProps {
   graph: PaperGraph;
-  onNodeClick?: (nodeId: string) => void;
-  selectedNodeId?: string;
+  //onNodeClick?: (nodeId: string) => void;
+  //selectedNodeId?: string;
   searchMode?: 'internal' | 'external';
   isExpanding: boolean;
 }
 
 const GraphComponent: React.FC<GraphComponentProps> = ({
   graph,
-  onNodeClick,
-  selectedNodeId,
+  //onNodeClick,
+  //selectedNodeId,
   isExpanding
 }) => {
   const [cy, setCy] = useState<cytoscape.Core | null>(null);

@@ -163,9 +163,9 @@ const LibraryModal: React.FC<LibraryModalProps> = ({
                       <p className="text-sm text-gray-600 mb-1">
                         {paper.authors.map(author => author.name).join(', ')}
                       </p>
-                      {paper.publication_date && (
+                      {paper.publicationDate && (
                         <p className="text-xs text-gray-500">
-                          {paper.publication_date}
+                          {paper.publicationDate}
                         </p>
                       )}
                     </div>
