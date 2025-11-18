@@ -1,4 +1,4 @@
-www.research-helper.kro.kr {
+www.research-helper.o-r.kr {
     
     reverse_proxy localhost:8000
 }
