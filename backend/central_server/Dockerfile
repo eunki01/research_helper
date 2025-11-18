@@ -16,24 +16,28 @@ COPY . .
 ################################################################
 
 # 5. Caddy 설치에 필요한 유틸리티 및 Caddy 설치
-# Caddy를 설치하기 전에 root 권한으로 전환합니다.
 USER root
-RUN apt-get update && apt-get install -y wget ca-certificates
 
-# Caddy 최신 버전을 다운로드하여 /usr/bin/caddy에 저장합니다.
-RUN wget -q -O /usr/bin/caddy "https://caddyserver.com/api/download?os=linux&arch=amd64&id=0f52b997c72f1225&p=deb"
-RUN chmod +x /usr/bin/caddy
+# 필요한 유틸리티 설치 및 GPG 키 관리를 위한 패키지 설치
+# lsb-release를 추가하여 배포판 정보가 정상적으로 인식되도록 합니다.
+RUN apt-get update && apt-get install -y \
+    curl \
+    debhelper \
+    lsb-release \
+    apt-transport-https 
 
-# Caddyfile을 컨테이너 내부의 표준 경로에 복사합니다.
-# (이 Caddyfile 파일은 Dockerfile과 같은 디렉토리에 있어야 합니다.)
+# Caddy 공식 설치 스크립트 실행 (가장 안정적)
+# 이 스크립트는 GPG 키를 추가하고 Caddy APT 리스트를 설정합니다.
+RUN curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/cfg/setup/bash.deb.sh' | bash
+
+# 최종적으로 Caddy 클라이언트 설치
+RUN apt-get update && apt-get install -y caddy
+
+# Caddyfile 복사 및 사용자 전환은 그대로 유지
 COPY Caddyfile /etc/caddy/Caddyfile 
 
 # 6. 비루트 사용자 전환
-# 보안을 위해 'python' 이미지가 제공하는 기본 사용자(root가 아님)로 다시 전환하거나,
-# 새 사용자(appuser)를 생성하는 것이 좋습니다. 여기서는 기본 'python' 유저로 가정합니다.
-# RUN useradd -m appuser  <-- 새 사용자 생성 예시
-# USER appuser
-USER 1000 # python:3.11-slim의 기본 사용자 UID로 전환합니다 (보안 권장)
+USER 1000 
 
 ################################################################
 
