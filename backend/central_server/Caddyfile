@@ -6,7 +6,7 @@ www.research-helper.kro.kr {
     # 2. 역방향 프록시 (Reverse Proxy) 설정
     # 외부에서 들어온 HTTPS 요청을 FastAPI가 리스닝하는 내부 HTTP 주소로 전달합니다.
     # FastAPI는 컨테이너 내부의 localhost:80에서 실행된다고 가정합니다.
-    reverse_proxy localhost:80 
+    reverse_proxy localhost:8000
     
     # 3. HTTP->HTTPS 자동 리다이렉션 (기본 동작)
     # Caddy는 HTTP (80)으로 들어오는 모든 요청을 자동으로 HTTPS (443)으로 리다이렉션합니다.
