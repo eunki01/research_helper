@@ -2,7 +2,11 @@
 # Caddy가 자동으로 Let's Encrypt를 통해 인증서를 발급받습니다.
 # [YOUR_DOMAIN_NAME] 부분을 실제 도메인(예: api.example.com)으로 변경해야 합니다.
 www.research-helper.kro.kr {
-
+    tls {
+        # 이 경로가 Dockerfile에서 권한을 부여한 경로와 정확히 일치해야 합니다.
+        storage file /app/caddy_data 
+    }
+    
     # 2. 역방향 프록시 (Reverse Proxy) 설정
     # 외부에서 들어온 HTTPS 요청을 FastAPI가 리스닝하는 내부 HTTP 주소로 전달합니다.
     # FastAPI는 컨테이너 내부의 localhost:80에서 실행된다고 가정합니다.
