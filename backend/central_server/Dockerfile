@@ -22,6 +22,7 @@ RUN apt-get update && apt-get install -y caddy
 USER root
 RUN mkdir -p /var/lib/caddy /var/log/caddy /etc/caddy 
 RUN chown -R 1000:0 /var/lib/caddy /var/log/caddy /etc/caddy
+RUN chown -R 1000:0 /app
 USER 1000 
 
 COPY Caddyfile /etc/caddy/Caddyfile
