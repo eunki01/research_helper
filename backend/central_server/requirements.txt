@@ -10,3 +10,4 @@ sqlalchemy
 redis[asyncio]
 passlib[bcrypt]
 httpx
+asyncpg
