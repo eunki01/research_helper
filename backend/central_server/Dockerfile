@@ -21,11 +21,18 @@ RUN apt-get update && apt-get install -y caddy
 
 USER root
 RUN mkdir -p /var/lib/caddy /var/log/caddy /etc/caddy 
-RUN chown -R 1000:0 /var/lib/caddy /var/log/caddy
-USER 1000
+RUN chown -R 1000:0 /var/lib/caddy /var/log/caddy /etc/caddy
+USER 1000 
+
+COPY Caddyfile /etc/caddy/Caddyfile
+
+EXPOSE 80 443 8000
 
 COPY Caddyfile /etc/caddy/Caddyfile
 
 EXPOSE 80 443
 
-CMD uvicorn main:app --host 0.0.0.0 --port 8000 & caddy run --config /etc/caddy/Caddyfile --adapter caddyfile
+CMD ["/bin/bash", "-c", "uvicorn main:app --host 0.0.0.0 --port 8000 & \
+    caddy run --config /etc/caddy/Caddyfile --adapter caddyfile \
+    --environ CADDY_DATA_DIR=/var/lib/caddy --environ CADDY_CONFIG_DIR=/etc/caddy \
+    --watch"]
