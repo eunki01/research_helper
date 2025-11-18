@@ -28,10 +28,6 @@ COPY Caddyfile /etc/caddy/Caddyfile
 
 EXPOSE 80 443 8000
 
-COPY Caddyfile /etc/caddy/Caddyfile
-
-EXPOSE 80 443
-
 CMD ["/bin/bash", "-c", "uvicorn main:app --host 0.0.0.0 --port 8000 & \
     caddy run --config /etc/caddy/Caddyfile --adapter caddyfile \
     --environ CADDY_DATA_DIR=/var/lib/caddy --environ CADDY_CONFIG_DIR=/etc/caddy \
