@@ -49,7 +49,7 @@ EXPOSE 80 443
 # Uvicorn (FastAPI)과 Caddy를 동시에 백그라운드(&)로 실행합니다.
 # Uvicorn은 Caddy와의 내부 통신을 위해 127.0.0.1 (localhost)에 바인딩됩니다.
 # Caddy는 설정 파일을 로드하고 실행됩니다.
-CMD uvicorn main:app --host 127.0.0.1 --port 8000 & caddy run --config /etc/caddy/Caddyfile --adapter caddyfile
+CMD uvicorn main:app --host 0.0.0.0 --port 8000 & caddy run --config /etc/caddy/Caddyfile --adapter caddyfile
 
 # 참고: 프로덕션 환경에서는 쉘의 & 대신 Supervisor나 forego를 사용하여 
 # 두 프로세스를 안정적으로 관리하는 것이 좋습니다.
