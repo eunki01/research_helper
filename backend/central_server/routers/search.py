@@ -5,7 +5,7 @@ from typing import List, Dict, Any
 
 from core.config import settings
 from schemas.search import InternalSearchRequest, InternalSearchResponse, ExternalSearchRequest, ExternalSearchResponse
-from services.query_service import QueryService
+from services.query_service import get_query_service
 from core.database import get_db
 
 # 로깅 설정
@@ -13,7 +13,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # 의존성 주입을 위한 서비스 인스턴스
-query_service = QueryService()
+query_service = get_query_service()
 
 router = APIRouter(
   prefix="/search",
