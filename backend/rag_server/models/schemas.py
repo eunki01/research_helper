@@ -3,6 +3,7 @@ from pydantic import BaseModel, Field
 from datetime import datetime
 from typing import List, Optional
 from dataclasses import dataclass
+from core.config import settings
 
 class SimilarityResult(BaseModel):
     """유사도 검색 결과로 반환되는 단일 청크 정보를 담는 모델"""
@@ -37,3 +38,13 @@ class SearchRequest(BaseModel):
     query_text: Optional[str] = Field(None, description="검색할 텍스트 쿼리")
     limit: int = Field(5, description="반환받을 최대 결과 수")
     similarity_threshold: float = Field(0.7, description="유사도 점수 임계값 (0.0 ~ 1.0)")
+
+class TitleSearchRequest(BaseModel):
+    """제목 검색 요청 모델"""
+    title_query: str = Field(..., description="논문 제목 검색어")
+    limit: Optional[int] = Field(settings.DEFAULT_SEARCH_LIMIT, description="최대 반환 결과 수")
+
+class AuthorSearchRequest(BaseModel):
+    """저자명 검색 요청 모델"""
+    author_query: str = Field(..., description="저자명 검색어")
+    limit: Optional[int] = Field(settings.DEFAULT_SEARCH_LIMIT, description="최대 반환 결과 수")

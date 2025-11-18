@@ -58,3 +58,7 @@ class SimilarityService:
         
         logger.info(f"{len(graph)}개의 유사도 관계(엣지)를 찾았습니다.")
         return graph
+
+def get_similarity_service() -> SimilarityService:
+    """FastAPI Depends를 위한 SimilarityService 인스턴스 반환 함수"""
+    return SimilarityService()

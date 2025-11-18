@@ -1,4 +1,5 @@
 // 시각화 관련 타입 정의
+import type { PaperGraph } from './paper';
 
 import type { PaperGraph } from './paper';
 

@@ -1,4 +1,5 @@
 // 검색 관련 타입 정의
+import type { ExternalReference, InternalDocumentReference, SimilarityLink } from './api';
 
 import type { ExternalReference, InternalDocumentReference, SimilarityLink } from './api';
 

@@ -3,7 +3,7 @@ import httpx
 import logging
 import datetime
 from typing import List, Dict, Any
-from fastapi import HTTPException
+from fastapi import HTTPException, Depends
 from collections import defaultdict
 from schemas.search import (
     InternalSearchRequest, ExternalSearchRequest,
@@ -13,16 +13,16 @@ from schemas.search import (
 )
 
 from core.config import settings
-from services.llm_service import LLMService
-from services.similarity_service import SimilarityService
+from services.llm_service import LLMService, get_llm_service # LLM 서비스와 팩토리 함수 import
+from services.similarity_service import SimilarityService, get_similarity_service # 유사도 서비스와 팩토리 함수 import
 
 logger = logging.getLogger(__name__)
 
 class QueryService:
-    def __init__(self):
-        self.http_client = httpx.AsyncClient(timeout=30.0)
-        self.llm_service = LLMService()
-        self.similarity_service = SimilarityService()
+    def __init__(self, llm_service: LLMService, similarity_service: SimilarityService):
+        self.http_client = httpx.AsyncClient(timeout=30.0) # http_client는 여기서 관리
+        self.llm_service = llm_service
+        self.similarity_service = similarity_service
 
     async def process_internal_search(self, request: InternalSearchRequest) -> InternalSearchResponse:
         """
@@ -76,16 +76,16 @@ class QueryService:
             for doc_id, data in grouped_references.items():
                 references.append(
                     InternalDocumentReference(
-                        paper_id=doc_id,
+                        paperId=doc_id,
                         title=data["meta"]["title"],
                         authors=data["meta"]["authors"],
-                        publication_date=data["meta"]["publication_date"],
+                        publicationDate=data["meta"]["publication_date"],
                         chunks=sorted(data["chunks"], key=lambda c: c.chunk_index) # 청크 순서대로 정렬
                     )
                 )
             
             # 4. 논문 간 유사도 계산
-            papers_for_similarity = [{"paperId": ref.paper_id, "embedding": doc.get("vector")} for ref, doc in zip(references, search_results)]
+            papers_for_similarity = [{"paperId": ref.paperId, "embedding": doc.get("vector")} for ref, doc in zip(references, search_results) if doc.get("vector")]
             similarity_graph_data = self.similarity_service.calculate_similarity_graph(papers_for_similarity)
             similarity_graph = [SimilarityLink(**link) for link in similarity_graph_data]
             
@@ -122,7 +122,7 @@ class QueryService:
             
             # 3. LLM 컨텍스트 구성 및 답변 생성
             context = self._build_external_context(search_results)
-            logger.info(f"--- LLM 컨텍스트 시작 ---\n{context}\n--- LLM 컨텍스트 끝 ---")
+            logger.info(f"--- LLM 컨텍스트 시작 ---\n{context[:500]}\n--- LLM 컨텍스트 끝 ---")
             llm_answer = await self.llm_service.get_final_response(context, request.query_text)
             
             # 4. 최종 응답 데이터 구성 (references)
@@ -135,20 +135,20 @@ class QueryService:
 
                 references.append(
                     ExternalReference( # ExternalReference 모델 사용
-                        paper_id=paper.get('paperId', ''),
+                        paperId=paper.get('paperId', ''),
                         title=paper.get('title', '제목 없음'),
-                        url=paper.get('openAccessPdf'),
+                        openAccessPdf=paper.get('openAccessPdf'),
                         authors=[author['name'] for author in paper.get('authors', []) if 'name' in author],
-                        publication_date=paper.get('publicationDate'),
+                        publicationDate=paper.get('publicationDate'),
                         tldr=tldr_text,
-                        citation_count=paper.get('citationCount'),
+                        citationCount=paper.get('citationCount'),
                         venue=paper.get('venue'),
-                        fields_of_study=paper.get('fieldsOfStudy')
+                        fieldsOfStudy=paper.get('fieldsOfStudy')
                     )
                 )
 
             # 5. 논문 간 유사도 계산
-            papers_for_similarity = [{"paperId": ref.paper_id, "embedding": paper.get("embedding", {}).get("vector")} for ref, paper in zip(references, search_results)]
+            papers_for_similarity = [{"paperId": ref.paperId, "embedding": paper.get("embedding", {}).get("vector")} for ref, paper in zip(references, search_results) if paper.get("embedding", {}).get("vector")]
             similarity_graph_data = self.similarity_service.calculate_similarity_graph(papers_for_similarity)
             similarity_graph = [SimilarityLink(**link) for link in similarity_graph_data]
 
@@ -181,3 +181,11 @@ class QueryService:
             context_parts.append(f"제목: {title}\n저자: {authors}\n출판일: {publication_date}\n\n초록:\n{abstract}")
         
         return "\n\n---\n\n".join(context_parts)
+
+# --- 팩토리 함수 추가 ---
+def get_query_service(
+    llm_service: LLMService = Depends(get_llm_service),
+    similarity_service: SimilarityService = Depends(get_similarity_service)
+) -> QueryService:
+    """FastAPI Depends를 위한 QueryService 인스턴스 반환 함수"""
+    return QueryService(llm_service=llm_service, similarity_service=similarity_service)

@@ -8,7 +8,7 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 
 from core.config import settings
-from models.schemas import UploadResponse, SimilarityResult, SearchRequest
+from models.schemas import UploadResponse, SimilarityResult, SearchRequest, TitleSearchRequest, AuthorSearchRequest
 from database.weaviate_db import db_manager_instance as db_manager, get_db_manager, WeaviateManager
 from utils.file_handler import FileHandler, get_file_handler
 from service.document_service import DocumentService, get_document_service
@@ -148,6 +148,49 @@ async def search_documents(
         logger.error(f"Unexpected error during text search: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail="Internal error during search processing.")
 
+@app.post("/search/title", response_model=List[SimilarityResult])
+async def search_by_title(
+    request: TitleSearchRequest,
+    service: DocumentService = Depends(get_document_service)
+):
+    """Performs title-based metadata search."""
+    if not request.title_query:
+        raise HTTPException(status_code=400, detail="title_query is required.")
+    logger.info(f"Received title search request: '{request.title_query[:50]}...'")
+    try:
+        results = service.search_by_title(
+            title_query=request.title_query,
+            limit=request.limit
+        )
+        logger.info(f"Title search completed: {len(results)} results found.")
+        return results
+    except HTTPException:
+         raise
+    except Exception as e:
+        logger.error(f"Unexpected error during title search: {str(e)}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Internal error during title search.")
+
+@app.post("/search/author", response_model=List[SimilarityResult])
+async def search_by_author(
+    request: AuthorSearchRequest,
+    service: DocumentService = Depends(get_document_service)
+):
+    """Performs author-based metadata search."""
+    if not request.author_query:
+        raise HTTPException(status_code=400, detail="author_query is required.")
+    logger.info(f"Received author search request: '{request.author_query[:50]}...'")
+    try:
+        results = service.search_by_authors(
+            author_query=request.author_query,
+            limit=request.limit
+        )
+        logger.info(f"Author search completed: {len(results)} results found.")
+        return results
+    except HTTPException:
+         raise
+    except Exception as e:
+        logger.error(f"Unexpected error during author search: {str(e)}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Internal error during author search.")
 
 @app.get("/stats")
 async def get_stats(db: WeaviateManager = Depends(get_db_manager)):
