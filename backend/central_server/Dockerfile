@@ -36,8 +36,11 @@ RUN apt-get update && apt-get install -y caddy
 # Caddyfile 복사 및 사용자 전환은 그대로 유지
 COPY Caddyfile /etc/caddy/Caddyfile 
 
-# 6. 비루트 사용자 전환
-USER 1000 
+USER root
+RUN mkdir -p /app/caddy_data /app/caddy_config
+# 비루트 사용자(UID 1000)가 이 디렉토리에 쓸 수 있도록 소유권 변경
+RUN chown -R 1000:0 /app/caddy_data /app/caddy_config
+USER 1000
 
 ################################################################
 
