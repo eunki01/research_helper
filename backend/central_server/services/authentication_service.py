@@ -2,8 +2,8 @@ from jose import JWTError, jwt
 from fastapi import Depends
 from datetime import datetime, timedelta
 from typing import Optional, Dict
-from central_server.core.config import settings
-from central_server.core.redis_config import get_redis_client
+from core.config import settings
+from core.redis_config import get_redis_client
 from redis.asyncio import Redis
 import random
 import string

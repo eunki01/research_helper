@@ -5,16 +5,16 @@ import datetime
 from typing import List, Dict, Any
 from fastapi import HTTPException
 from collections import defaultdict
-from central_server.schemas.search import (
+from schemas.search import (
     InternalSearchRequest, ExternalSearchRequest,
     InternalSearchResponse, InternalDocumentReference, ChunkReference,
     ExternalSearchResponse, ExternalReference,
     SimilarityLink
 )
 
-from central_server.core.config import settings
-from central_server.services.llm_service import LLMService
-from central_server.services.similarity_service import SimilarityService
+from core.config import settings
+from services.llm_service import LLMService
+from services.similarity_service import SimilarityService
 
 logger = logging.getLogger(__name__)
 

@@ -3,10 +3,10 @@ from sqlalchemy.orm import Session
 import logging
 from typing import List, Dict, Any
 
-from central_server.core.config import settings
-from central_server.schemas.search import InternalSearchRequest, InternalSearchResponse, ExternalSearchRequest, ExternalSearchResponse
-from central_server.services.query_service import QueryService
-from central_server.core.database import get_db
+from core.config import settings
+from schemas.search import InternalSearchRequest, InternalSearchResponse, ExternalSearchRequest, ExternalSearchResponse
+from services.query_service import QueryService
+from core.database import get_db
 
 # 로깅 설정
 logging.basicConfig(level=logging.INFO)

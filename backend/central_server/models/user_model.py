@@ -1,15 +1,20 @@
-from sqlalchemy import Column, Integer, String, Boolean, DateTime
-from sqlalchemy.sql import func
-from central_server.core.database import Base
-
+from typing import List, Optional
+from datetime import datetime
+from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Text, Float, Boolean, Date
+from sqlalchemy.orm import relationship, Mapped, mapped_column
+from core.database import Base
+  
 class User(Base):
-  __tablename__ = "users"
-  
-  id = Column(Integer, primary_key=True, index=True)
-  email = Column(String, unique=True, index=True, nullable=False)
-  hashed_password = Column(String, nullable=False)
-  is_active = Column(Boolean, default=False)
-  SignUpDate = Column(DateTime, server_default=func.now())
-  
-  def __repr__(self):
-    return f"<User(id={self.id}, email='{self.email})>"
+    
+    __tablename__ = 'user'
+    
+    # Mapped Columns
+    UserId: Mapped[int] = mapped_column(Integer, primary_key=True)
+    Email: Mapped[str] = mapped_column(String(255), unique=True)
+    PasswordHash: Mapped[str] = mapped_column(String(255))
+    Name: Mapped[str] = mapped_column(String(255))
+    SignUpDate: Mapped[Optional[datetime.date]] = mapped_column(Date, nullable=True)
+    
+    # Relationships
+    collections: Mapped[List['Collection']] = relationship(back_populates="user")
+    collected_papers: Mapped[List['CollectionPaper']] = relationship(back_populates="user")

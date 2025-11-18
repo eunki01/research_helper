@@ -1,6 +1,6 @@
 import smtplib
 from email.mime.text import MIMEText
-from central_server.core.config import settings
+from core.config import settings
 
 def send_email(to_email: str, subject: str, body: str):
   smtp_server = settings.SMTP_SERVER

@@ -1,8 +1,8 @@
-from central_server.utils.encoder import hash_password
+from utils.encoder import hash_password
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
-from central_server.models.user_model import User
-from central_server.schemas.user_create import UserCreate
+from models.user_model import User
+from schemas.user_create import UserCreate
 
 async def create_user(db: AsyncSession, user: UserCreate):
   hashed_password = hash_password(user.Password)

@@ -1,17 +1,17 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from central_server.core.database import get_db
-from central_server.models import user_model
-from central_server.utils.email import send_email
+from core.database import get_db
+from models import user_model
+from utils.email import send_email
 from fastapi.security import OAuth2PasswordRequestForm
-from central_server.services.authentication_service import create_access_token_and_refresh_token, verify_token, generate_verification_code, verify_code
-from central_server.crud.user import get_user_by_email, create_user, set_user_active_status
-from central_server.utils.encoder import verify_password
-from central_server.schemas.token import Token
-from central_server.schemas.user_dto import UserDto
-from central_server.schemas.user_create import UserCreate
-from central_server.models.user_model import User
+from services.authentication_service import create_access_token_and_refresh_token, verify_token, generate_verification_code, verify_code
+from crud.user import get_user_by_email, create_user, set_user_active_status
+from utils.encoder import verify_password
+from schemas.token import Token
+from schemas.user_dto import UserDto
+from schemas.user_create import UserCreate
+from models.user_model import User
 
 router = APIRouter(
   prefix="/users",

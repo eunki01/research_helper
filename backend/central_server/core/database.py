@@ -1,8 +1,9 @@
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
-from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, declarative_base
 from typing import AsyncGenerator
-from central_server.core.config import settings
+from core.config import settings
+from contextlib import asynccontextmanager
+from fastapi import FastAPI
 
 async_engine = create_async_engine(settings.DATABASE_URL, echo=True)
 AsyncSessionLocal = sessionmaker(
@@ -20,8 +21,15 @@ async def get_db() -> AsyncGenerator:
       raise
     finally:
       await db.close()
-
-async def init_db():
+    
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+  from models import (
+      User, Author, Paper, Citation, 
+      Collection, PaperAuthor, CollectionPaper
+  )
+  print("Registered tables:", list(Base.metadata.tables.keys()))
+  
   async with async_engine.begin() as conn:
     await conn.run_sync(Base.metadata.create_all)
-    
+  yield

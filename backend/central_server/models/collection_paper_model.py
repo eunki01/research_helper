@@ -2,7 +2,7 @@ from typing import List, Optional
 from datetime import datetime
 from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Text, Float, Boolean
 from sqlalchemy.orm import relationship, Mapped, mapped_column
-from central_server.core.database import Base
+from core.database import Base
 
 class CollectionPaper(Base):
     __tablename__ = 'collection_paper'

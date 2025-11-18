@@ -1,6 +1,6 @@
 from redis.asyncio import Redis
 from typing import Optional
-from central_server.core.config import settings
+from core.config import settings
 
 redis_client: Optional[Redis] = None
 
