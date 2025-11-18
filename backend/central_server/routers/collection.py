@@ -4,7 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List
 
 from core.database import get_db
-from services.authentication_service import get_current_user
+from utils.get_current_user import get_current_user
 from models import User
 from schemas.collection import (
     CollectionCreate,
