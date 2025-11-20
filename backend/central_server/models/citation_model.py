@@ -14,10 +14,12 @@ class Citation(Base):
     RelationshipType: Mapped[Optional[str]] = mapped_column(String(50))
     SimilarityScore: Mapped[Optional[float]] = mapped_column(Float)
 
-    # Relationship: N:1 관계 (두 개의 다른 관계로 Paper 테이블과 연결)
     citing_paper: Mapped["Paper"] = relationship(
-        foreign_keys=[CitingPaperId], back_populates="citing_citations"
+        foreign_keys=[CitingPaperId], 
+        back_populates="cites" 
     )
+    
     cited_paper: Mapped["Paper"] = relationship(
-        foreign_keys=[CitedPaperId], back_populates="cited_citations"
+        foreign_keys=[CitedPaperId], 
+        back_populates="cited_by"
     )

@@ -63,6 +63,6 @@ async def login(db: AsyncSession = Depends(get_db), form_data: OAuth2PasswordReq
   user = await get_user_by_email(db, form_data.username)
   if not user:
     raise HTTPException(status_code=400, detail="Incorrect email or password")
-  if not verify_password(form_data.password, user.hashed_password):
+  if not verify_password(form_data.password, user.PasswordHash):
     raise HTTPException(status_code=400, detail="Incorrect email or password")
-  return create_access_token_and_refresh_token(user_id=user.id)
+  return create_access_token_and_refresh_token(user_id=user.UserId)

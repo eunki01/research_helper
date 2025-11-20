@@ -1,10 +1,19 @@
-from jose import JWTError, jwt
-from fastapi import Depends
+import jwt
+from jwt.exceptions import (
+    ExpiredSignatureError,
+    InvalidSignatureError,
+    DecodeError,
+    InvalidAlgorithmError,
+    InvalidKeyError,
+    PyJWTError # 모든 JWT 오류의 기본 클래스
+)
+from fastapi import Depends, HTTPException
 from datetime import datetime, timedelta
 from typing import Optional, Dict
 from core.config import settings
 from core.redis_config import get_redis_client
 from redis.asyncio import Redis
+from starlette import status
 import random
 import string
 import uuid
@@ -30,25 +39,61 @@ def create_token(data: dict, expires_delta: Optional[timedelta] = None, token_ty
 def create_access_token_and_refresh_token(user_id: str) -> Dict[str, str]:
   jti = str(uuid.uuid4())
   
-  access_token = create_token(data={"sub":user_id}, token_type="access")
+  user_id_str = str(user_id)
   
-  refresh_token = create_token(data={"sub":user_id, "jti": jti}, token_type="refresh")
+  access_token = create_token(data={"sub":user_id_str}, token_type="access")
   
-  save_refresh_token_jti(jti=jti, user_id=user_id)
+  refresh_token = create_token(data={"sub":user_id_str, "jti": jti}, token_type="refresh")
+  
+  save_refresh_token_jti(jti=jti, user_id=user_id_str)
   
   return {
     "access_token": access_token,
     "refresh_token": refresh_token,
     "token_type": "Bearer",
-    
   }
 
 def verify_token(token: str):
+  print(f"{token} {settings.SECRET_KEY} {settings.ALGORITHM}")
   try:
     payload =  jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+    print(payload)
     return payload
-  except JWTError:
-    return None
+  except ExpiredSignatureError:
+    raise HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Token has expired. Please log in again.",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+
+  except InvalidSignatureError:
+      raise HTTPException(
+          status_code=status.HTTP_401_UNAUTHORIZED,
+          detail="Invalid token signature. Token may be corrupted or key is incorrect.",
+          headers={"WWW-Authenticate": "Bearer"},
+      )
+
+  except (InvalidAlgorithmError, InvalidKeyError, DecodeError):
+      raise HTTPException(
+          status_code=status.HTTP_401_UNAUTHORIZED,
+          detail="Token decoding failed. Invalid format or algorithm.",
+          headers={"WWW-Authenticate": "Bearer"},
+      )
+
+  except PyJWTError as e:
+      print(f"DEBUG: Uncaught PyJWTError details: {e}")
+      raise HTTPException(
+          status_code=status.HTTP_401_UNAUTHORIZED,
+          detail="Could not validate credentials.",
+          headers={"WWW-Authenticate": "Bearer"},
+      )
+
+  except Exception as e:
+      print(f"Unexpected error during token processing: {e}")
+      raise HTTPException(
+          status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+          detail="Internal server error during authentication.",
+      )
 
 async def save_refresh_token_jti(jti: str, user_id: str, client: Redis=Depends(get_redis_client)):
     key = f"{{ {JTI_PREFIX}{jti} }}"

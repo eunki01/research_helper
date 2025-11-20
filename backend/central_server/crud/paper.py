@@ -5,7 +5,7 @@ from typing import List, Optional, Tuple
 from models import Paper, Author, PaperAuthor, Citation
 
 
-async def get_paper_by_id(db: AsyncSession, paper_id: str) -> Optional[Paper]:
+async def get_paper_by_id(db: AsyncSession, paper_id: int) -> Optional[Paper]:
     """논문 ID로 조회"""
     result = await db.execute(
         select(Paper).where(Paper.PaperId == paper_id)
@@ -15,7 +15,7 @@ async def get_paper_by_id(db: AsyncSession, paper_id: str) -> Optional[Paper]:
 
 async def get_paper_with_authors(
     db: AsyncSession, 
-    paper_id: str
+    paper_id: int
 ) -> Optional[Tuple[Paper, List[str]]]:
     """논문과 저자 정보를 함께 조회"""
     paper = await get_paper_by_id(db, paper_id)
@@ -26,13 +26,13 @@ async def get_paper_with_authors(
     return paper, authors
 
 
-async def get_paper_authors(db: AsyncSession, paper_id: str) -> List[str]:
+async def get_paper_authors(db: AsyncSession, paper_id: int) -> List[str]:
     """논문의 저자 목록 조회"""
     result = await db.execute(
         select(Author.Name)
-        .join(PaperAuthor, Author.AuthorId == PaperAuthor.author_id)
-        .where(PaperAuthor.paper_id == paper_id)
-        .order_by(PaperAuthor.author_id)
+        .join(PaperAuthor, Author.AuthorId == PaperAuthor.AuthorId)
+        .where(PaperAuthor.PaperId == paper_id)
+        .order_by(PaperAuthor.AuthorId)
     )
     return [name for name, in result]
 
@@ -54,9 +54,9 @@ async def search_papers(
     ]
     
     if year_min:
-        filters.append(Paper.Year >= year_min)
+        filters.append(Paper.PublicationYear >= year_min)
     if year_max:
-        filters.append(Paper.Year <= year_max)
+        filters.append(Paper.PublicationYear <= year_max)
     
     result = await db.execute(
         select(Paper)
@@ -70,14 +70,14 @@ async def search_papers(
 
 async def get_paper_references(
     db: AsyncSession,
-    paper_id: str,
+    paper_id: int,
     limit: int = 50
 ) -> List[Paper]:
     """논문이 인용한 논문들 (References)"""
     result = await db.execute(
         select(Paper)
-        .join(Citation, Paper.PaperId == Citation.cited_paper_id)
-        .where(Citation.citing_paper_id == paper_id)
+        .join(Citation, Paper.PaperId == Citation.CitingPaperId)
+        .where(Citation.CitingPaperId == paper_id)
         .order_by(Paper.CitationCount.desc())
         .limit(limit)
     )
@@ -86,21 +86,21 @@ async def get_paper_references(
 
 async def get_paper_citations(
     db: AsyncSession,
-    paper_id: str,
+    paper_id: int,
     limit: int = 50
 ) -> List[Paper]:
     """논문을 인용한 논문들 (Citations)"""
     result = await db.execute(
         select(Paper)
-        .join(Citation, Paper.PaperId == Citation.citing_paper_id)
-        .where(Citation.cited_paper_id == paper_id)
-        .order_by(Paper.Year.desc(), Paper.CitationCount.desc())
+        .join(Citation, Paper.PaperId == Citation.CitingPaperId)
+        .where(Citation.CitedPaperId == paper_id)
+        .order_by(Paper.PublicationYear.desc(), Paper.CitationCount.desc())
         .limit(limit)
     )
     return result.scalars().all()
 
 
-async def get_paper_stats(db: AsyncSession, paper_id: str) -> dict:
+async def get_paper_stats(db: AsyncSession, paper_id: int) -> dict:
     """논문 통계 조회"""
     paper = await get_paper_by_id(db, paper_id)
     if not paper:
@@ -108,29 +108,29 @@ async def get_paper_stats(db: AsyncSession, paper_id: str) -> dict:
     
     # Reference 수
     ref_count = await db.execute(
-        select(func.count(Citation.cited_paper_id))
-        .where(Citation.citing_paper_id == paper_id)
+        select(func.count(Citation.CitedPaperId))
+        .where(Citation.CitingPaperId == paper_id)
     )
     references = ref_count.scalar()
     
     # Citation 수
     cite_count = await db.execute(
-        select(func.count(Citation.citing_paper_id))
-        .where(Citation.cited_paper_id == paper_id)
+        select(func.count(Citation.CitingPaperId))
+        .where(Citation.CitedPaperId == paper_id)
     )
     citations = cite_count.scalar()
     
     # 저자 수
     author_count = await db.execute(
-        select(func.count(PaperAuthor.author_id))
-        .where(PaperAuthor.paper_id == paper_id)
+        select(func.count(PaperAuthor.AuthorId))
+        .where(PaperAuthor.PaperId == paper_id)
     )
     authors = author_count.scalar()
     
     return {
         "paper_id": paper_id,
         "title": paper.Title,
-        "year": paper.Year,
+        "year": paper.PublicationYear,
         "citation_count": paper.CitationCount,
         "reference_count": references,
         "direct_citations": citations,
@@ -140,7 +140,7 @@ async def get_paper_stats(db: AsyncSession, paper_id: str) -> dict:
 
 async def get_papers_by_ids(
     db: AsyncSession,
-    paper_ids: List[str]
+    paper_ids: List[int]
 ) -> List[Paper]:
     """여러 논문 ID로 조회"""
     result = await db.execute(

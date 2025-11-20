@@ -43,7 +43,7 @@ class CollectionService:
             papers_with_authors.append({
                 "PaperId": paper.PaperId,
                 "Title": paper.Title,
-                "Year": paper.Year,
+                "Year": paper.PublicationYear,
                 "Abstract": paper.Abstract,
                 "CitationCount": paper.CitationCount,
                 "authors": authors
@@ -59,7 +59,7 @@ class CollectionService:
     async def add_paper_to_collection_with_validation(
         db: AsyncSession,
         collection_id: int,
-        paper_id: str,
+        paper_id: int,
         user_id: int
     ):
         """컬렉션에 논문 추가 (검증 포함)"""
@@ -77,7 +77,7 @@ class CollectionService:
         
         # 추가
         success = await collection_crud.add_paper_to_collection(
-            db, collection_id, paper_id
+            db, collection_id, paper_id, user_id=user_id
         )
         if not success:
             raise HTTPException(
@@ -91,7 +91,7 @@ class CollectionService:
     async def remove_paper_with_validation(
         db: AsyncSession,
         collection_id: int,
-        paper_id: str,
+        paper_id: int,
         user_id: int
     ):
         """컬렉션에서 논문 제거 (검증 포함)"""
@@ -146,7 +146,7 @@ class CollectionService:
                 "paper": {
                     "PaperId": paper.PaperId,
                     "Title": paper.Title,
-                    "Year": paper.Year,
+                    "Year": paper.PublicationYear,
                     "Abstract": paper.Abstract,
                     "CitationCount": paper.CitationCount,
                     "authors": authors
@@ -181,7 +181,7 @@ class CollectionService:
             }
         
         total_citations = sum(p.CitationCount for p in papers)
-        years = [p.Year for p in papers if p.Year]
+        years = [p.PublicationYear for p in papers if p.PublicationYear]
         
         return {
             "paper_count": len(papers),

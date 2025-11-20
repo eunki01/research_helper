@@ -12,7 +12,7 @@ class PaperService:
     @staticmethod
     async def get_paper_with_details(
         db: AsyncSession,
-        paper_id: str
+        paper_id: int
     ) -> Optional[Dict]:
         """논문 상세 정보 조회 (저자, 통계 포함)"""
         paper_data = await paper_crud.get_paper_with_authors(db, paper_id)
@@ -48,7 +48,7 @@ class PaperService:
             results.append({
                 "PaperId": paper.PaperId,
                 "Title": paper.Title,
-                "Year": paper.Year,
+                "Year": paper.PublicationYear,
                 "Abstract": paper.Abstract,
                 "CitationCount": paper.CitationCount,
                 "authors": authors
@@ -59,7 +59,7 @@ class PaperService:
     @staticmethod
     async def get_citation_network(
         db: AsyncSession,
-        paper_id: str,
+        paper_id: int,
         depth: int = 1
     ) -> Dict:
         """Citation 네트워크 데이터 생성 (시각화용)"""
@@ -99,7 +99,7 @@ class PaperService:
                 {
                     "id": pid,
                     "title": p.Title,
-                    "year": p.Year,
+                    "year": p.PublicationYear,
                     "citation_count": p.CitationCount
                 }
                 for pid, p in nodes.items()
@@ -119,7 +119,7 @@ class PaperService:
             results.append({
                 "PaperId": paper.PaperId,
                 "Title": paper.Title,
-                "Year": paper.Year,
+                "Year": paper.PublicationYear,
                 "Abstract": paper.Abstract,
                 "CitationCount": paper.CitationCount,
                 "authors": authors

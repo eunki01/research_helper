@@ -4,7 +4,7 @@ from typing import Optional
 
 
 class AuthorResponse(BaseModel):
-    author_id: str
+    author_id: int
     name: str
     paper_count: int = 0
 
@@ -18,7 +18,7 @@ class AuthorSearchParams(BaseModel):
 
 
 class AuthorDetailResponse(BaseModel):
-    author_id: str
+    author_id: int
     name: str
     paper_count: int
     total_citations: int

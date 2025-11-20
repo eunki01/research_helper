@@ -5,18 +5,26 @@ from models.user_model import User
 from schemas.user_create import UserCreate
 
 async def create_user(db: AsyncSession, user: UserCreate):
-  hashed_password = hash_password(user.Password)
-  db_user = User(email=user.Email, hashed_password=hashed_password)
-  db.add(db_user)
-  await db.commit()
-  await db.refresh(db_user)
-  return db_user
+    hashed_password = hash_password(user.Password)
+    
+    db_user = User(
+        Email=user.Email, 
+        PasswordHash=hashed_password,
+        Name=user.Name,
+        IsActive=True 
+    )
+    
+    db.add(db_user)
+    await db.commit()
+    await db.refresh(db_user)
+    return db_user
 
 async def get_user_by_id(db: AsyncSession, user_id: int):
-    return await db.get(User, user_id)
+    result = await db.get(User, user_id)
+    return result
 
 async def get_user_by_email(db: AsyncSession, email: str):
-    stmt = select(User).where(User.email == email)
+    stmt = select(User).where(User.Email == email)
     result = await db.execute(stmt)
     return result.scalar_one_or_none()
 
@@ -24,20 +32,25 @@ async def update_user(db: AsyncSession, db_user: User, user_update: UserCreate):
     update_data = user_update.model_dump(exclude_unset=True) 
 
     for key, value in update_data.items():
-        setattr(db_user, key, value)
-    
-    db.add(db_user)
+        if key == 'Password':
+            setattr(db_user, 'PasswordHash', hash_password(value))
+        elif key == 'Email':
+            setattr(db_user, 'Email', value)
+        elif key == 'Name':
+            setattr(db_user, 'Name', value)
+        elif key == 'IsActive':
+            setattr(db_user, 'IsActive', value)
+
     await db.commit()
     await db.refresh(db_user)
     return db_user
-  
+    
 async def set_user_active_status(db: AsyncSession, db_user: User, new_status: bool) -> User:
-  db_user.is_active = new_status
-  db.add(db_user)
-  await db.commit()
-  await db.refresh(db_user)
-  
-  return db_user
+    db_user.IsActive = new_status
+    await db.commit()
+    await db.refresh(db_user)
+    
+    return db_user
 
 async def delete_user(db: AsyncSession, db_user: User):
     await db.delete(db_user)

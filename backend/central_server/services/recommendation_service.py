@@ -12,18 +12,18 @@ class RecommendationService:
     @staticmethod
     async def get_similar_papers_by_co_citation(
         db: AsyncSession,
-        paper_id: str,
+        paper_id: int,
         limit: int = 10,
-        exclude_ids: List[str] = None
-    ) -> List[Tuple[Paper, float, str]]:
+        exclude_ids: List[int] = None
+    ) -> List[Tuple[Paper, float, int]]:
         """공동 인용 기반 유사 논문 추천"""
         exclude_ids = exclude_ids or []
         exclude_ids.append(paper_id)
         
         # 1. 이 논문이 인용한 논문들
         cited_by_target = await db.execute(
-            select(Citation.cited_paper_id)
-            .where(Citation.citing_paper_id == paper_id)
+            select(Citation.CitedPaperId)
+            .where(Citation.CitingPaperId == paper_id)
         )
         cited_ids = [id for id, in cited_by_target]
         
@@ -34,17 +34,17 @@ class RecommendationService:
         result = await db.execute(
             select(
                 Paper,
-                func.count(Citation.cited_paper_id).label("common_citations")
+                func.count(Citation.CitedPaperId).label("common_citations")
             )
-            .join(Citation, Paper.PaperId == Citation.citing_paper_id)
+            .join(Citation, Paper.PaperId == Citation.CitingPaperId)
             .where(
                 and_(
-                    Citation.cited_paper_id.in_(cited_ids),
+                    Citation.CitedPaperId.in_(cited_ids),
                     Paper.PaperId.notin_(exclude_ids)
                 )
             )
             .group_by(Paper.PaperId)
-            .order_by(func.count(Citation.cited_paper_id).desc())
+            .order_by(func.count(Citation.CitedPaperId).desc())
             .limit(limit)
         )
         
@@ -59,18 +59,18 @@ class RecommendationService:
     @staticmethod
     async def get_similar_papers_by_bibliographic_coupling(
         db: AsyncSession,
-        paper_id: str,
+        paper_id: int,
         limit: int = 10,
-        exclude_ids: List[str] = None
-    ) -> List[Tuple[Paper, float, str]]:
+        exclude_ids: List[int] = None
+    ) -> List[Tuple[Paper, float, int]]:
         """서지결합 기반 유사 논문 추천 (같은 논문을 참조하는 논문들)"""
         exclude_ids = exclude_ids or []
         exclude_ids.append(paper_id)
         
         # 1. 이 논문을 인용한 논문들
         citing_papers = await db.execute(
-            select(Citation.citing_paper_id)
-            .where(Citation.cited_paper_id == paper_id)
+            select(Citation.CitingPaperId)
+            .where(Citation.CitedPaperId == paper_id)
         )
         citing_ids = [id for id, in citing_papers]
         
@@ -81,17 +81,17 @@ class RecommendationService:
         result = await db.execute(
             select(
                 Paper,
-                func.count(Citation.citing_paper_id).label("common_citations")
+                func.count(Citation.CitingPaperId).label("common_citations")
             )
-            .join(Citation, Paper.PaperId == Citation.cited_paper_id)
+            .join(Citation, Paper.PaperId == Citation.CitedPaperId)
             .where(
                 and_(
-                    Citation.citing_paper_id.in_(citing_ids),
+                    Citation.CitingPaperId.in_(citing_ids),
                     Paper.PaperId.notin_(exclude_ids)
                 )
             )
             .group_by(Paper.PaperId)
-            .order_by(func.count(Citation.citing_paper_id).desc())
+            .order_by(func.count(Citation.CitingPaperId).desc())
             .limit(limit)
         )
         
@@ -106,9 +106,9 @@ class RecommendationService:
     @staticmethod
     async def get_collection_recommendations(
         db: AsyncSession,
-        collection_paper_ids: List[str],
+        collection_paper_ids: List[int],
         limit: int = 20
-    ) -> List[Tuple[Paper, float, str]]:
+    ) -> List[Tuple[Paper, float, int]]:
         """컬렉션 기반 추천 (컬렉션 논문들이 많이 인용한 논문)"""
         if not collection_paper_ids:
             return []
@@ -117,17 +117,17 @@ class RecommendationService:
         result = await db.execute(
             select(
                 Paper,
-                func.count(Citation.citing_paper_id).label("citation_count")
+                func.count(Citation.CitingPaperId).label("citation_count")
             )
-            .join(Citation, Paper.PaperId == Citation.cited_paper_id)
+            .join(Citation, Paper.PaperId == Citation.CitedPaperId)
             .where(
                 and_(
-                    Citation.citing_paper_id.in_(collection_paper_ids),
+                    Citation.CitingPaperId.in_(collection_paper_ids),
                     Paper.PaperId.notin_(collection_paper_ids)
                 )
             )
             .group_by(Paper.PaperId)
-            .order_by(func.count(Citation.citing_paper_id).desc())
+            .order_by(func.count(Citation.CitingPaperId).desc())
             .limit(limit)
         )
         
@@ -142,22 +142,22 @@ class RecommendationService:
     @staticmethod
     async def get_recent_papers_in_field(
         db: AsyncSession,
-        paper_id: str,
+        paper_id: int,
         years: int = 2,
         limit: int = 10
-    ) -> List[Tuple[Paper, float, str]]:
+    ) -> List[Tuple[Paper, float, int]]:
         """최근 관련 논문 추천"""
         # 해당 논문이 인용한 논문들의 최근 인용 논문
         target_paper = await paper_crud.get_paper_by_id(db, paper_id)
-        if not target_paper or not target_paper.Year:
+        if not target_paper or not target_paper.PublicationYear:
             return []
         
-        min_year = target_paper.Year - years
+        min_year = target_paper.PublicationYear - years
         
         # 참조 논문들
         cited_ids = await db.execute(
-            select(Citation.cited_paper_id)
-            .where(Citation.citing_paper_id == paper_id)
+            select(Citation.CitedPaperId)
+            .where(Citation.CitingPaperId == paper_id)
         )
         cited_list = [id for id, in cited_ids]
         
@@ -167,22 +167,22 @@ class RecommendationService:
         # 이 참조 논문들을 인용한 최근 논문들
         result = await db.execute(
             select(Paper)
-            .join(Citation, Paper.PaperId == Citation.citing_paper_id)
+            .join(Citation, Paper.PaperId == Citation.CitingPaperId)
             .where(
                 and_(
-                    Citation.cited_paper_id.in_(cited_list),
-                    Paper.Year >= min_year,
+                    Citation.CitedPaperId.in_(cited_list),
+                    Paper.PublicationYear >= min_year,
                     Paper.PaperId != paper_id
                 )
             )
-            .order_by(Paper.Year.desc(), Paper.CitationCount.desc())
+            .order_by(Paper.PublicationYear.desc(), Paper.CitationCount.desc())
             .limit(limit)
         )
         
         recommendations = []
         for paper in result.scalars():
-            score = 1.0 - (target_paper.Year - paper.Year) / years if paper.Year else 0.5
-            reason = f"Recent paper ({paper.Year}) citing related work"
+            score = 1.0 - (target_paper.PublicationYear - paper.PublicationYear) / years if paper.PublicationYear else 0.5
+            reason = f"Recent paper ({paper.PublicationYear}) citing related work"
             recommendations.append((paper, score, reason))
         
         return recommendations
@@ -190,16 +190,16 @@ class RecommendationService:
     @staticmethod
     async def get_author_recommendations(
         db: AsyncSession,
-        author_id: str,
+        author_id: int,
         limit: int = 10
-    ) -> List[Tuple[Paper, float, str]]:
+    ) -> List[Tuple[Paper, float, int]]:
         """저자 기반 추천 (해당 저자의 다른 논문들)"""
         # 저자의 최근 논문들
         result = await db.execute(
             select(Paper)
-            .join(PaperAuthor, Paper.PaperId == PaperAuthor.paper_id)
-            .where(PaperAuthor.author_id == author_id)
-            .order_by(Paper.Year.desc(), Paper.CitationCount.desc())
+            .join(PaperAuthor, Paper.PaperId == PaperAuthor.PaperId)
+            .where(PaperAuthor.AuthorId == author_id)
+            .order_by(Paper.PublicationYear.desc(), Paper.CitationCount.desc())
             .limit(limit)
         )
         

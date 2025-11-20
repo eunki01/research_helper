@@ -7,7 +7,7 @@ from models import Author, Paper, PaperAuthor
 
 async def get_author_by_id(
     db: AsyncSession,
-    author_id: str
+    author_id: int
 ) -> Optional[Author]:
     """저자 ID로 조회"""
     result = await db.execute(
@@ -26,12 +26,12 @@ async def search_authors(
     result = await db.execute(
         select(
             Author,
-            func.count(PaperAuthor.paper_id).label("paper_count")
+            func.count(PaperAuthor.PaperId).label("paper_count")
         )
-        .outerjoin(PaperAuthor, Author.AuthorId == PaperAuthor.author_id)
+        .outerjoin(PaperAuthor, Author.AuthorId == PaperAuthor.AuthorId)
         .where(Author.Name.ilike(f"%{query}%"))
         .group_by(Author.AuthorId)
-        .order_by(func.count(PaperAuthor.paper_id).desc())
+        .order_by(func.count(PaperAuthor.PaperId).desc())
         .limit(limit)
         .offset(offset)
     )
@@ -40,16 +40,16 @@ async def search_authors(
 
 async def get_author_papers(
     db: AsyncSession,
-    author_id: str,
+    author_id: int,
     limit: int = 50,
     offset: int = 0
 ) -> List[Paper]:
     """저자의 모든 논문"""
     result = await db.execute(
         select(Paper)
-        .join(PaperAuthor, Paper.PaperId == PaperAuthor.paper_id)
-        .where(PaperAuthor.author_id == author_id)
-        .order_by(Paper.Year.desc(), Paper.CitationCount.desc())
+        .join(PaperAuthor, Paper.PaperId == PaperAuthor.PaperId)
+        .where(PaperAuthor.AuthorId == author_id)
+        .order_by(Paper.PublicationYear.desc())
         .limit(limit)
         .offset(offset)
     )
@@ -58,7 +58,7 @@ async def get_author_papers(
 
 async def get_author_stats(
     db: AsyncSession,
-    author_id: str
+    author_id: int
 ) -> Optional[dict]:
     """저자 통계"""
     author = await get_author_by_id(db, author_id)
@@ -67,15 +67,15 @@ async def get_author_stats(
     
     # 논문 수
     paper_count = await db.execute(
-        select(func.count(PaperAuthor.paper_id))
-        .where(PaperAuthor.author_id == author_id)
+        select(func.count(PaperAuthor.PaperId))
+        .where(PaperAuthor.AuthorId == author_id)
     )
     
     # 총 인용 수
     total_citations = await db.execute(
         select(func.sum(Paper.CitationCount))
-        .join(PaperAuthor, Paper.PaperId == PaperAuthor.paper_id)
-        .where(PaperAuthor.author_id == author_id)
+        .join(PaperAuthor, Paper.PaperId == PaperAuthor.PaperId)
+        .where(PaperAuthor.AuthorId == author_id)
     )
     
     return {
@@ -88,25 +88,25 @@ async def get_author_stats(
 
 async def get_coauthors(
     db: AsyncSession,
-    author_id: str,
+    author_id: int,
     limit: int = 20
 ) -> List[tuple[Author, int]]:
     """공동 저자 목록 (공동 작업한 논문 수 포함)"""
     result = await db.execute(
         select(
             Author,
-            func.count(PaperAuthor.paper_id).label("collaboration_count")
+            func.count(PaperAuthor.PaperId).label("collaboration_count")
         )
-        .join(PaperAuthor, Author.AuthorId == PaperAuthor.author_id)
+        .join(PaperAuthor, Author.AuthorId == PaperAuthor.AuthorId)
         .where(
-            PaperAuthor.paper_id.in_(
-                select(PaperAuthor.paper_id)
-                .where(PaperAuthor.author_id == author_id)
+            PaperAuthor.PaperId.in_(
+                select(PaperAuthor.PaperId)
+                .where(PaperAuthor.AuthorId == author_id)
             ),
             Author.AuthorId != author_id
         )
         .group_by(Author.AuthorId)
-        .order_by(func.count(PaperAuthor.paper_id).desc())
+        .order_by(func.count(PaperAuthor.PaperId).desc())
         .limit(limit)
     )
     return result.all()

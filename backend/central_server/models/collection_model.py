@@ -12,9 +12,7 @@ class Collection(Base):
     CollectionName: Mapped[str] = mapped_column(String(255))
     Description: Mapped[Optional[str]] = mapped_column(Text)
     CreatedAt: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    UpdatedAt: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
-    # Relationship: N:1 관계 (Collection:User)
     user: Mapped["User"] = relationship(back_populates="collections")
-    
-    # Relationship: N:M 관계 (Collection:Paper)
     collection_papers: Mapped[List["CollectionPaper"]] = relationship(back_populates="collection")

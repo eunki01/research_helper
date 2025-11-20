@@ -36,7 +36,7 @@ async def search_authors(
 
 @router.get("/{author_id}", response_model=AuthorDetailResponse)
 async def get_author_detail(
-    author_id: str,
+    author_id: int,
     db: AsyncSession = Depends(get_db)
 ):
     """저자 상세 정보"""
@@ -53,7 +53,7 @@ async def get_author_detail(
 
 @router.get("/{author_id}/papers", response_model=List[PaperResponse])
 async def get_author_papers(
-    author_id: str,
+    author_id: int,
     limit: int = Query(50, le=200, description="Maximum results"),
     offset: int = Query(0, ge=0, description="Offset for pagination"),
     db: AsyncSession = Depends(get_db)
@@ -68,7 +68,7 @@ async def get_author_papers(
 
 @router.get("/{author_id}/coauthors", response_model=List[AuthorResponse])
 async def get_coauthors(
-    author_id: str,
+    author_id: int,
     limit: int = Query(20, le=100, description="Maximum results"),
     db: AsyncSession = Depends(get_db)
 ):

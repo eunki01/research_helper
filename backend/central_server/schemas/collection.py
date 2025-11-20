@@ -1,5 +1,5 @@
 # schemas/collection.py
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 from typing import Optional
 from datetime import datetime
 
@@ -15,21 +15,29 @@ class CollectionUpdate(BaseModel):
 
 
 class CollectionResponse(BaseModel):
-    id: int
-    name: str
-    description: Optional[str]
-    user_id: int
+    id: int = Field(..., alias="CollectionId") 
+    
+    name: str = Field(..., alias="CollectionName")
+    
+    description: Optional[str] = Field(None, alias="Description")
+    
+    user_id: int = Field(..., alias="UserId")
+    
     paper_count: int = 0
-    created_at: datetime
-    updated_at: Optional[datetime]
+    
+    created_at: datetime = Field(..., alias="CreatedAt")
+    
+    updated_at: Optional[datetime] = Field(None, alias="UpdatedAt")
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(
+        from_attributes=True,
+        populate_by_name=True 
+    )
 
 
 class AddPaperToCollection(BaseModel):
-    paper_id: str
+    paper_id: int
 
 
 class RemovePaperFromCollection(BaseModel):
-    paper_id: str
+    paper_id: int

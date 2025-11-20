@@ -8,7 +8,6 @@ class PaperAuthor(Base):
     
     __tablename__ = 'paper_author'
     
-    # Composite Primary Key
     AuthorId: Mapped[int] = mapped_column(ForeignKey('author.AuthorId'), primary_key=True)
     PaperId: Mapped[int] = mapped_column(ForeignKey('paper.PaperId'), primary_key=True)
     

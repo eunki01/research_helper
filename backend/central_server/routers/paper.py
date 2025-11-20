@@ -47,7 +47,7 @@ async def get_trending_papers(
 
 @router.get("/{paper_id}", response_model=PaperDetailResponse)
 async def get_paper_detail(
-    paper_id: str,
+    paper_id: int,
     db: AsyncSession = Depends(get_db)
 ):
     """논문 상세 정보"""
@@ -62,18 +62,20 @@ async def get_paper_detail(
     return {
         "PaperId": paper.PaperId,
         "Title": paper.Title,
-        "Year": paper.Year,
         "Abstract": paper.Abstract,
+        "PublicationYear": paper.PublicationYear,
+        "JournalName": paper.JournalName,
+        "Pages": paper.Pages,
+        "PDF_URL": paper.PDF_URL,
+        "MetaData": paper.MetaData,
         "CitationCount": paper.CitationCount,
-        "authors": authors,
-        "reference_count": stats["reference_count"],
-        "citation_count_direct": stats["direct_citations"]
+        "Authors": authors
     }
 
 
 @router.get("/{paper_id}/stats", response_model=PaperStatsResponse)
 async def get_paper_stats(
-    paper_id: str,
+    paper_id: int,
     db: AsyncSession = Depends(get_db)
 ):
     """논문 통계"""
@@ -85,7 +87,7 @@ async def get_paper_stats(
 
 @router.get("/{paper_id}/references", response_model=List[PaperResponse])
 async def get_paper_references(
-    paper_id: str,
+    paper_id: int,
     limit: int = Query(50, le=200, description="Maximum results"),
     db: AsyncSession = Depends(get_db)
 ):
@@ -96,7 +98,7 @@ async def get_paper_references(
 
 @router.get("/{paper_id}/citations", response_model=List[PaperResponse])
 async def get_paper_citations(
-    paper_id: str,
+    paper_id: int,
     limit: int = Query(50, le=200, description="Maximum results"),
     db: AsyncSession = Depends(get_db)
 ):
@@ -107,7 +109,7 @@ async def get_paper_citations(
 
 @router.get("/{paper_id}/similar")
 async def get_similar_papers(
-    paper_id: str,
+    paper_id: int,
     algorithm: str = Query("co_citation", description="Recommendation algorithm"),
     limit: int = Query(10, le=50, description="Maximum results"),
     db: AsyncSession = Depends(get_db)
@@ -134,7 +136,7 @@ async def get_similar_papers(
             "paper": {
                 "PaperId": paper.PaperId,
                 "Title": paper.Title,
-                "Year": paper.Year,
+                "Year": paper.PublicationYear,
                 "Abstract": paper.Abstract,
                 "CitationCount": paper.CitationCount,
                 "authors": authors
@@ -148,7 +150,7 @@ async def get_similar_papers(
 
 @router.get("/{paper_id}/network")
 async def get_citation_network(
-    paper_id: str,
+    paper_id: int,
     depth: int = Query(1, ge=1, le=2, description="Network depth"),
     db: AsyncSession = Depends(get_db)
 ):

@@ -5,12 +5,12 @@ from datetime import datetime
 
 
 class AuthorBase(BaseModel):
-    author_id: str
+    author_id: int
     name: str
 
 
 class PaperBase(BaseModel):
-    paper_id: str = Field(alias="PaperId")
+    paper_id: int = Field(alias="PaperId")
     title: str = Field(alias="Title")
     year: Optional[int] = Field(None, alias="Year")
     abstract: Optional[str] = Field(None, alias="Abstract")
@@ -38,7 +38,7 @@ class PaperSearchParams(BaseModel):
 
 
 class PaperStatsResponse(BaseModel):
-    paper_id: str
+    paper_id: int
     title: str
     year: Optional[int]
     citation_count: int

@@ -29,7 +29,7 @@ async def create_collection(
     """새 컬렉션 생성"""
     new_collection = await CollectionService.create_user_collection(
         db,
-        current_user.id,
+        current_user.UserId,
         collection.name,
         collection.description
     )
@@ -47,7 +47,7 @@ async def get_user_collections(
 ):
     """사용자의 모든 컬렉션 조회"""
     collections_with_count = await collection_crud.get_user_collections(
-        db, current_user.id
+        db, current_user.UserId
     )
     
     return [
@@ -67,7 +67,7 @@ async def get_collection(
 ):
     """특정 컬렉션 조회"""
     collection_data = await CollectionService.get_collection_with_papers(
-        db, collection_id, current_user.id
+        db, collection_id, current_user.UserId
     )
     
     if not collection_data:
@@ -93,7 +93,7 @@ async def update_collection(
     updated_collection = await collection_crud.update_collection(
         db,
         collection_id,
-        current_user.id,
+        current_user.UserId,
         collection_update.name,
         collection_update.description
     )
@@ -118,7 +118,7 @@ async def delete_collection(
 ):
     """컬렉션 삭제"""
     success = await collection_crud.delete_collection(
-        db, collection_id, current_user.id
+        db, collection_id, current_user.UserId
     )
     
     if not success:
@@ -136,20 +136,20 @@ async def add_paper_to_collection(
 ):
     """컬렉션에 논문 추가"""
     return await CollectionService.add_paper_to_collection_with_validation(
-        db, collection_id, paper_data.paper_id, current_user.id
+        db, collection_id, paper_data.paper_id, current_user.UserId
     )
 
 
 @router.delete("/{collection_id}/papers/{paper_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def remove_paper_from_collection(
     collection_id: int,
-    paper_id: str,
+    paper_id: int,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
     """컬렉션에서 논문 제거"""
     await CollectionService.remove_paper_with_validation(
-        db, collection_id, paper_id, current_user.id
+        db, collection_id, paper_id, current_user.UserId
     )
     return None
 
@@ -162,7 +162,7 @@ async def get_collection_papers(
 ):
     """컬렉션의 모든 논문 조회"""
     collection_data = await CollectionService.get_collection_with_papers(
-        db, collection_id, current_user.id
+        db, collection_id, current_user.UserId
     )
     
     if not collection_data:
@@ -180,7 +180,7 @@ async def get_collection_recommendations(
 ):
     """컬렉션 기반 논문 추천"""
     recommendations = await CollectionService.get_collection_recommendations(
-        db, collection_id, current_user.id, limit
+        db, collection_id, current_user.UserId, limit
     )
     return recommendations
 
@@ -193,7 +193,7 @@ async def get_collection_stats(
 ):
     """컬렉션 통계"""
     stats = await CollectionService.get_collection_stats(
-        db, collection_id, current_user.id
+        db, collection_id, current_user.UserId
     )
     
     if stats is None:
