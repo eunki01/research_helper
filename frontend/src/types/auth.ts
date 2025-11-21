@@ -1,4 +1,4 @@
-// »ç¿ëÀÚ Å¸ÀÔ
+// ì‚¬ìš©ì íƒ€ì…
 export interface User {
     id: string;
     name: string;
@@ -6,20 +6,20 @@ export interface User {
     createdAt: string;
 }
 
-// ·Î±×ÀÎ ¿äÃ» Å¸ÀÔ
+// ë¡œê·¸ì¸ ìš”ì²­ íƒ€ì…
 export interface LoginRequest {
     email: string;
     password: string;
 }
 
-// È¸¿ø°¡ÀÔ ¿äÃ» Å¸ÀÔ
+// íšŒì›ê°€ì… ìš”ì²­ íƒ€ì…
 export interface SignupRequest {
     name: string;
     email: string;
     password: string;
 }
 
-// ÀÎÁõ ÀÀ´ä Å¸ÀÔ
+// ì¸ì¦ ì‘ë‹µ íƒ€ì…
 export interface AuthResponse {
     user: User;
     token: string;

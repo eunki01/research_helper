@@ -29,7 +29,7 @@ class ChunkReference(BaseModel):
 
 class InternalDocumentReference(BaseModel):
     """그룹화된 내부 문서 참조 모델"""
-    paperId: str = Field(..., description="문서의 고유 ID (주로 DOI)")
+    paper_id: str = Field(..., description="문서의 고유 ID (주로 DOI)")
     title: str = Field(..., description="문서의 제목 (주로 파일명)")
     authors: Optional[List[str]] = Field(None, description="문서의 저자 목록")
     publicationDate: Optional[str] = Field(None, description="문서의 발행일")
@@ -46,7 +46,7 @@ class InternalSearchResponse(BaseModel):
 
 class ExternalReference(BaseModel):
     """외부 논문 검색 결과를 위한 Reference 모델"""
-    paperId: str = Field(..., description="Semantic Scholar의 논문 고유 ID")
+    paper_id: str = Field(..., description="Semantic Scholar의 논문 고유 ID")
     title: str = Field(..., description="논문의 제목")
     openAccessPdf: Optional[str] = Field(None, description="논문 상세 페이지 또는 PDF 파일 URL")
     authors: Optional[List[str]] = Field(None, description="논문의 저자 목록")

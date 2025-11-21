@@ -15,7 +15,7 @@ const SignupPage: React.FC<SignupPageProps> = ({ onSignup }) => {
     const [agreeTerms, setAgreeTerms] = useState(false);
     const [errors, setErrors] = useState<{
         name?: string;
-        email?: string;c
+        email?: string;
         password?: string;
         confirmPassword?: string;
         terms?: string;
@@ -32,29 +32,29 @@ const SignupPage: React.FC<SignupPageProps> = ({ onSignup }) => {
         } = {};
 
         if (!name.trim()) {
-            newErrors.name = 'ÀÌ¸§À» ÀÔ·ÂÇØÁÖ¼¼¿ä.';
+            newErrors.name = 'ì´ë¦„ì„ ì…ë ¥í•´ì£¼ì„¸ìš”.';
         }
 
         if (!email) {
-            newErrors.email = 'ÀÌ¸ŞÀÏÀ» ÀÔ·ÂÇØÁÖ¼¼¿ä.';
+            newErrors.email = 'ì´ë©”ì¼ì„ ì…ë ¥í•´ì£¼ì„¸ìš”.';
         } else if (!/\S+@\S+\.\S+/.test(email)) {
-            newErrors.email = '¿Ã¹Ù¸¥ ÀÌ¸ŞÀÏ Çü½ÄÀÌ ¾Æ´Õ´Ï´Ù.';
+            newErrors.email = 'ì˜¬ë°”ë¥¸ ì´ë©”ì¼ í˜•ì‹ì´ ì•„ë‹™ë‹ˆë‹¤.';
         }
 
         if (!password) {
-            newErrors.password = 'ºñ¹Ğ¹øÈ£¸¦ ÀÔ·ÂÇØÁÖ¼¼¿ä.';
+            newErrors.password = 'ë¹„ë°€ë²ˆí˜¸ë¥¼ ì…ë ¥í•´ì£¼ì„¸ìš”.';
         } else if (password.length < 8) {
-            newErrors.password = 'ºñ¹Ğ¹øÈ£´Â ÃÖ¼Ò 8ÀÚ ÀÌ»óÀÌ¾î¾ß ÇÕ´Ï´Ù.';
+            newErrors.password = 'ë¹„ë°€ë²ˆí˜¸ëŠ” ìµœì†Œ 8ì ì´ìƒì´ì–´ì•¼ í•©ë‹ˆë‹¤.';
         }
 
         if (!confirmPassword) {
-            newErrors.confirmPassword = 'ºñ¹Ğ¹øÈ£ È®ÀÎÀ» ÀÔ·ÂÇØÁÖ¼¼¿ä.';
+            newErrors.confirmPassword = 'ë¹„ë°€ë²ˆí˜¸ í™•ì¸ì„ ì…ë ¥í•´ì£¼ì„¸ìš”.';
         } else if (password !== confirmPassword) {
-            newErrors.confirmPassword = 'ºñ¹Ğ¹øÈ£°¡ ÀÏÄ¡ÇÏÁö ¾Ê½À´Ï´Ù.';
+            newErrors.confirmPassword = 'ë¹„ë°€ë²ˆí˜¸ê°€ ì¼ì¹˜í•˜ì§€ ì•ŠìŠµë‹ˆë‹¤.';
         }
 
         if (!agreeTerms) {
-            newErrors.terms = 'ÀÌ¿ë¾à°ü¿¡ µ¿ÀÇÇØÁÖ¼¼¿ä.';
+            newErrors.terms = 'ì´ìš©ì•½ê´€ì— ë™ì˜í•´ì£¼ì„¸ìš”.';
         }
 
         setErrors(newErrors);
@@ -70,7 +70,7 @@ const SignupPage: React.FC<SignupPageProps> = ({ onSignup }) => {
         try {
             await onSignup(name, email, password);
         } catch (error) {
-            setErrors({ email: 'È¸¿ø°¡ÀÔ¿¡ ½ÇÆĞÇß½À´Ï´Ù.' });
+            setErrors({ email: 'íšŒì›ê°€ì…ì— ì‹¤íŒ¨í–ˆìŠµë‹ˆë‹¤.' });
         } finally {
             setIsLoading(false);
         }
@@ -78,35 +78,35 @@ const SignupPage: React.FC<SignupPageProps> = ({ onSignup }) => {
 
     return (
         <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center px-4 py-12">
-            {/* Çì´õ */}
+            {/* í—¤ë” */}
             <div className="text-center mb-8">
                 <h1 className="text-3xl font-bold text-gray-900 mb-2">
                     Research Navigator
                 </h1>
                 <p className="text-gray-600">
-                    »õ·Î¿î ¿¬±¸ ¿©Á¤À» ½ÃÀÛÇÏ¼¼¿ä
+                    ìƒˆë¡œìš´ ì—°êµ¬ ì—¬ì •ì„ ì‹œì‘í•˜ì„¸ìš”
                 </p>
             </div>
 
-            {/* È¸¿ø°¡ÀÔ Æû */}
+            {/* íšŒì›ê°€ì… í¼ */}
             <div className="w-full max-w-md bg-white rounded-lg shadow-sm border border-gray-200 p-8">
                 <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">
-                    È¸¿ø°¡ÀÔ
+                    íšŒì›ê°€ì…
                 </h2>
 
                 <form onSubmit={handleSubmit}>
                     <AuthInput
-                        label="ÀÌ¸§"
+                        label="ì´ë¦„"
                         type="text"
                         value={name}
                         onChange={(e) => setName(e.target.value)}
-                        placeholder="È«±æµ¿"
+                        placeholder="í™ê¸¸ë™"
                         required
                         error={errors.name}
                     />
 
                     <AuthInput
-                        label="ÀÌ¸ŞÀÏ"
+                        label="ì´ë©”ì¼"
                         type="email"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
@@ -116,26 +116,26 @@ const SignupPage: React.FC<SignupPageProps> = ({ onSignup }) => {
                     />
 
                     <AuthInput
-                        label="ºñ¹Ğ¹øÈ£"
+                        label="ë¹„ë°€ë²ˆí˜¸"
                         type="password"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
-                        placeholder="8ÀÚ ÀÌ»ó ÀÔ·ÂÇÏ¼¼¿ä"
+                        placeholder="8ì ì´ìƒ ì…ë ¥í•˜ì„¸ìš”"
                         required
                         error={errors.password}
                     />
 
                     <AuthInput
-                        label="ºñ¹Ğ¹øÈ£ È®ÀÎ"
+                        label="ë¹„ë°€ë²ˆí˜¸ í™•ì¸"
                         type="password"
                         value={confirmPassword}
                         onChange={(e) => setConfirmPassword(e.target.value)}
-                        placeholder="ºñ¹Ğ¹øÈ£¸¦ ´Ù½Ã ÀÔ·ÂÇÏ¼¼¿ä"
+                        placeholder="ë¹„ë°€ë²ˆí˜¸ë¥¼ ë‹¤ì‹œ ì…ë ¥í•˜ì„¸ìš”"
                         required
                         error={errors.confirmPassword}
                     />
 
-                    {/* ÀÌ¿ë¾à°ü µ¿ÀÇ */}
+                    {/* ì´ìš©ì•½ê´€ ë™ì˜ */}
                     <div className="mb-6">
                         <label className="flex items-start">
                             <input
@@ -146,13 +146,13 @@ const SignupPage: React.FC<SignupPageProps> = ({ onSignup }) => {
                             />
                             <span className="ml-2 text-sm text-gray-600">
                                 <a href="#" className="text-blue-500 hover:text-blue-600">
-                                    ÀÌ¿ë¾à°ü
+                                    ì´ìš©ì•½ê´€
                                 </a>
-                                {' '}¹×{' '}
+                                {' '}ë°{' '}
                                 <a href="#" className="text-blue-500 hover:text-blue-600">
-                                    °³ÀÎÁ¤º¸Ã³¸®¹æÄ§
+                                    ê°œì¸ì •ë³´ì²˜ë¦¬ë°©ì¹¨
                                 </a>
-                                ¿¡ µ¿ÀÇÇÕ´Ï´Ù.
+                                ì— ë™ì˜í•©ë‹ˆë‹¤.
                             </span>
                         </label>
                         {errors.terms && (
@@ -161,31 +161,31 @@ const SignupPage: React.FC<SignupPageProps> = ({ onSignup }) => {
                     </div>
 
                     <AuthButton
-                        text="È¸¿ø°¡ÀÔ"
+                        text="íšŒì›ê°€ì…"
                         type="submit"
                         isLoading={isLoading}
                         variant="primary"
                     />
                 </form>
 
-                {/* ·Î±×ÀÎ ¸µÅ© */}
+                {/* ë¡œê·¸ì¸ ë§í¬ */}
                 <div className="mt-6 text-center">
                     <p className="text-sm text-gray-600">
-                        ÀÌ¹Ì °èÁ¤ÀÌ ÀÖÀ¸½Å°¡¿ä?{' '}
+                        ì´ë¯¸ ê³„ì •ì´ ìˆìœ¼ì‹ ê°€ìš”?{' '}
                         <Link to="/login" className="text-blue-500 hover:text-blue-600 font-medium">
-                            ·Î±×ÀÎ
+                            ë¡œê·¸ì¸
                         </Link>
                     </p>
                 </div>
 
-                {/* ¼Ò¼È È¸¿ø°¡ÀÔ (¼±ÅÃ»çÇ×) */}
+                {/* ì†Œì…œ íšŒì›ê°€ì… (ì„ íƒì‚¬í•­) */}
                 <div className="mt-6">
                     <div className="relative">
                         <div className="absolute inset-0 flex items-center">
                             <div className="w-full border-t border-gray-300"></div>
                         </div>
                         <div className="relative flex justify-center text-sm">
-                            <span className="px-2 bg-white text-gray-500">¶Ç´Â</span>
+                            <span className="px-2 bg-white text-gray-500">ë˜ëŠ”</span>
                         </div>
                     </div>
 
@@ -200,26 +200,26 @@ const SignupPage: React.FC<SignupPageProps> = ({ onSignup }) => {
                 </div>
             </div>
 
-            {/* ÇÏ´Ü ¾È³» */}
+            {/* í•˜ë‹¨ ì•ˆë‚´ */}
             <div className="mt-8 text-center max-w-md">
                 <div className="grid grid-cols-3 gap-4 text-sm text-gray-500">
                     <div>
                         <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center mx-auto mb-2">
                             <span className="text-blue-500 font-bold">1</span>
                         </div>
-                        <p>¹«·á °¡ÀÔ</p>
+                        <p>ë¬´ë£Œ ê°€ì…</p>
                     </div>
                     <div>
                         <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center mx-auto mb-2">
                             <span className="text-blue-500 font-bold">2</span>
                         </div>
-                        <p>³í¹® ¾÷·Îµå</p>
+                        <p>ë…¼ë¬¸ ì—…ë¡œë“œ</p>
                     </div>
                     <div>
                         <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center mx-auto mb-2">
                             <span className="text-blue-500 font-bold">3</span>
                         </div>
-                        <p>¿¬±¸ ½ÃÀÛ</p>
+                        <p>ì—°êµ¬ ì‹œì‘</p>
                     </div>
                 </div>
             </div>

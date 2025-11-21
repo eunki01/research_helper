@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
 import { authService } from '../services/AuthService';
 import type { User } from '../types/auth';
 
@@ -17,11 +17,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // ¾Û ½ÃÀÛ ½Ã ÀÎÁõ »óÅÂ È®ÀÎ
+  // ì•± ì‹œì‘ ì‹œ ì¸ì¦ ìƒíƒœ í™•ì¸
   useEffect(() => {
     const checkAuth = async () => {
       if (authService.isAuthenticated()) {
-        // ÅäÅ«ÀÌ ÀÖÀ¸¸é »ç¿ëÀÚ Á¤º¸ °¡Á®¿À±â
+        // í† í°ì´ ìˆìœ¼ë©´ ì‚¬ìš©ì ì •ë³´ ê°€ì ¸ì˜¤ê¸°
         try {
           // const userData = await authService.getCurrentUser();
           // setUser(userData);

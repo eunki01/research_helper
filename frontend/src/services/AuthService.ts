@@ -7,7 +7,7 @@ class AuthService {
         this.baseUrl = baseUrl;
     }
 
-    // ·Î±×ÀÎ ¸Ş¼­µå
+    // ë¡œê·¸ì¸ ë©”ì„œë“œ
     async login(credentials: LoginRequest): Promise<AuthResponse> {
         try {
             const response = await fetch(`${this.baseUrl}/login`, {
@@ -18,7 +18,7 @@ class AuthService {
 
             if (!response.ok) {
                 const error = await response.json();
-                throw new Error(error.message || '·Î±×ÀÎ¿¡ ½ÇÆĞÇß½À´Ï´Ù.');
+                throw new Error(error.message || 'ë¡œê·¸ì¸ì— ì‹¤íŒ¨í–ˆìŠµë‹ˆë‹¤.');
             }
 
             return await response.json();
@@ -28,7 +28,7 @@ class AuthService {
         }
     }
 
-    // È¸¿ø°¡ÀÔ ¸Ş¼­µå
+    // íšŒì›ê°€ì… ë©”ì„œë“œ
     async signup(userData: SignupRequest): Promise<AuthResponse> {
         try {
             const response = await fetch(`${this.baseUrl}/signup`, {
@@ -39,7 +39,7 @@ class AuthService {
 
             if (!response.ok) {
                 const error = await response.json();
-                throw new Error(error.message || 'È¸¿ø°¡ÀÔ¿¡ ½ÇÆĞÇß½À´Ï´Ù.');
+                throw new Error(error.message || 'íšŒì›ê°€ì…ì— ì‹¤íŒ¨í–ˆìŠµë‹ˆë‹¤.');
             }
 
             return await response.json();
@@ -49,7 +49,7 @@ class AuthService {
         }
     }
 
-    // ·Î±×¾Æ¿ô ¸Ş¼­µå
+    // ë¡œê·¸ì•„ì›ƒ ë©”ì„œë“œ
     async logout(): Promise<void> {
         try {
             await fetch(`${this.baseUrl}/logout`, {
@@ -63,29 +63,29 @@ class AuthService {
         }
     }
 
-    // ÅäÅ« ÀúÀå
+    // í† í° ì €ì¥
     saveToken(token: string): void {
         localStorage.setItem('auth_token', token);
     }
 
-    // ÅäÅ« °¡Á®¿À±â
+    // í† í° ê°€ì ¸ì˜¤ê¸°
     getToken(): string | null {
         return localStorage.getItem('auth_token');
     }
 
-    // ÅäÅ« »èÁ¦
+    // í† í° ì‚­ì œ
     clearToken(): void {
         localStorage.removeItem('auth_token');
     }
 
-    // ÀÎÁõ »óÅÂ È®ÀÎ
+    // ì¸ì¦ ìƒíƒœ í™•ì¸
     isAuthenticated(): boolean {
         return !!this.getToken();
     }
 }
 
-// ½Ì±ÛÅæ ÀÎ½ºÅÏ½º export
+// ì‹±ê¸€í†¤ ì¸ìŠ¤í„´ìŠ¤ export
 export const authService = new AuthService();
 
-// Å¬·¡½ºµµ export (Å×½ºÆ®³ª Ä¿½ºÅÒ ÀÎ½ºÅÏ½º¿ë)
+// í´ë˜ìŠ¤ë„ export (í…ŒìŠ¤íŠ¸ë‚˜ ì»¤ìŠ¤í…€ ì¸ìŠ¤í„´ìŠ¤ìš©)
 export default AuthService;

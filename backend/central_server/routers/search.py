@@ -5,15 +5,12 @@ from typing import List, Dict, Any
 
 from core.config import settings
 from schemas.search import InternalSearchRequest, InternalSearchResponse, ExternalSearchRequest, ExternalSearchResponse
-from services.query_service import get_query_service
+from services.query_service import QueryService, get_query_service
 from core.database import get_db
 
 # 로깅 설정
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
-
-# 의존성 주입을 위한 서비스 인스턴스
-query_service = get_query_service()
 
 router = APIRouter(
   prefix="/search",
@@ -21,7 +18,10 @@ router = APIRouter(
 )
 
 @router.post("/internal", response_model=InternalSearchResponse)
-async def search_internal_data(request: InternalSearchRequest):
+async def search_internal_data(
+    request: InternalSearchRequest,
+    query_service: QueryService = Depends(get_query_service)
+    ):
     """
     내부 백엔드 서버를 통해 검색을 수행하고 LLM 답변을 반환합니다.
     """
@@ -36,7 +36,10 @@ async def search_internal_data(request: InternalSearchRequest):
         raise HTTPException(status_code=500, detail="내부 검색 처리 중 오류가 발생했습니다.")
 
 @router.post("/external", response_model=ExternalSearchResponse)
-async def search_external_data(request: ExternalSearchRequest):
+async def search_external_data(
+    request: ExternalSearchRequest,
+    query_service: QueryService = Depends(get_query_service)                          
+    ):
     """
     Semantic Scholar API 서버를 통해 검색을 수행하고 LLM 답변을 반환합니다.
     """

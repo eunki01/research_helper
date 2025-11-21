@@ -9,7 +9,7 @@ export interface ExternalSearchRequest {
 export interface ExternalReference {
   paperId: string;
   title: string;
-  openAccessPdf?: string;
+  url?: string;
   authors?: string[];
   publicationDate?: string;
   tldr?: string;
