@@ -9,7 +9,7 @@ export interface ExternalSearchRequest {
 export interface ExternalReference {
   paperId: string;
   title: string;
-  url?: string;
+  openAccessPdf?: string;
   authors?: string[];
   publicationDate?: string;
   tldr?: string;
@@ -101,5 +101,4 @@ export interface SemanticScholarResult {
   venue?: string;
   fieldsOfStudy?: string[];
 }
-
 

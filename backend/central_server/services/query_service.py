@@ -76,7 +76,7 @@ class QueryService:
             for doc_id, data in grouped_references.items():
                 references.append(
                     InternalDocumentReference(
-                        paper_id=doc_id,
+                        paperId=doc_id,
                         title=data["meta"]["title"],
                         authors=data["meta"]["authors"],
                         publicationDate=data["meta"]["publication_date"],
@@ -85,7 +85,7 @@ class QueryService:
                 )
             
             # 4. 논문 간 유사도 계산
-            papers_for_similarity = [{"paperId": ref.paper_id, "embedding": doc.get("vector")} for ref, doc in zip(references, search_results) if doc.get("vector")]
+            papers_for_similarity = [{"paperId": ref.paperId, "embedding": doc.get("vector")} for ref, doc in zip(references, search_results) if doc.get("vector")]
             similarity_graph_data = self.similarity_service.calculate_similarity_graph(papers_for_similarity)
             similarity_graph = [SimilarityLink(**link) for link in similarity_graph_data]
             
@@ -135,20 +135,20 @@ class QueryService:
 
                 references.append(
                     ExternalReference( # ExternalReference 모델 사용
-                        paper_id=paper.get('paperId', ''),
+                        paperId=paper.get('paperId', ''),
                         title=paper.get('title', '제목 없음'),
-                        url=paper.get('openAccessPdf'),
+                        openAccessPdf=paper.get('openAccessPdf'),
                         authors=[author['name'] for author in paper.get('authors', []) if 'name' in author],
-                        publication_date=paper.get('publicationDate'),
+                        publicationDate=paper.get('publicationDate'),
                         tldr=tldr_text,
-                        citation_count=paper.get('citationCount'),
+                        citationCount=paper.get('citationCount'),
                         venue=paper.get('venue'),
-                        fields_of_study=paper.get('fieldsOfStudy')
+                        fieldsOfStudy=paper.get('fieldsOfStudy')
                     )
                 )
 
             # 5. 논문 간 유사도 계산
-            papers_for_similarity = [{"paperId": ref.paper_id, "embedding": paper.get("embedding", {}).get("vector")} for ref, paper in zip(references, search_results) if paper.get("embedding", {}).get("vector")]
+            papers_for_similarity = [{"paperId": ref.paperId, "embedding": paper.get("embedding", {}).get("vector")} for ref, paper in zip(references, search_results) if paper.get("embedding", {}).get("vector")]
             similarity_graph_data = self.similarity_service.calculate_similarity_graph(papers_for_similarity)
             similarity_graph = [SimilarityLink(**link) for link in similarity_graph_data]
 

@@ -7,7 +7,7 @@ import logging
 from typing import List, Dict, Any
 
 from core.config import settings
-from core.models import InternalSearchRequest, ExternalSearchRequest, InternalSearchResponse, ExternalSearchResponse
+from schemas.search import InternalSearchRequest, ExternalSearchRequest, InternalSearchResponse, ExternalSearchResponse
 from services.query_service import QueryService ,get_query_service
 from services.llm_service import get_llm_service
 from services.similarity_service import get_similarity_service
