@@ -4,12 +4,14 @@ import ApiService from '../../services/apiService';
 interface FileUploadProps {
   onUploadSuccess?: (filename: string) => void;
   onUploadError?: (error: string) => void;
+  onFileSelect?: (file: File) => void;
   className?: string;
 }
 
 const FileUpload: React.FC<FileUploadProps> = ({
   onUploadSuccess,
   onUploadError,
+  onFileSelect,
   className = ''
 }) => {
   const [isDragOver, setIsDragOver] = useState(false);
@@ -38,6 +40,11 @@ const FileUpload: React.FC<FileUploadProps> = ({
     const validationError = validateFile(file);
     if (validationError) {
       onUploadError?.(validationError);
+      return;
+    }
+
+    if (onFileSelect) {
+      onFileSelect(file);
       return;
     }
 
@@ -100,6 +107,8 @@ const FileUpload: React.FC<FileUploadProps> = ({
     if (files && files.length > 0) {
       handleFileUpload(files[0]);
     }
+
+    e.target.value = '';
   };
 
   const handleClick = () => {
