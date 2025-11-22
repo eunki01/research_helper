@@ -1,9 +1,9 @@
 # main.py
-from fastapi import FastAPI, UploadFile, File, HTTPException, Depends
+from fastapi import FastAPI, UploadFile, File, HTTPException, Depends, Form
 from fastapi.middleware.cors import CORSMiddleware
 from datetime import datetime, timezone
 import logging
-from typing import List
+from typing import List, Optional
 from contextlib import asynccontextmanager
 from pathlib import Path
 
@@ -66,6 +66,9 @@ async def health_check(db: WeaviateManager = Depends(get_db_manager)):
 @app.post("/upload", response_model=UploadResponse)
 async def upload_file(
     file: UploadFile = File(...),
+    title: Optional[str] = Form(None),    
+    authors: Optional[str] = Form(None), 
+    year: Optional[int] = Form(None),
     handler: FileHandler = Depends(get_file_handler),
     service: DocumentService = Depends(get_document_service)
 ):
@@ -80,9 +83,19 @@ async def upload_file(
         # 2. Save Temporarily (Handler)
         file_path = await handler.save_uploaded_file(file)
 
+        user_metadata = {
+            "title": title,
+            "authors": authors,
+            "year": year
+        }
+
         # 3. Process and Store Document (Service)
         # Assuming sync for now:
-        stored_ids = service.process_and_store_document(file_path, original_filename)
+        stored_ids = service.process_and_store_document(
+            file_path, 
+            original_filename,
+            metadata=user_metadata
+        )
 
         # 4. Create Response
         response_message = f"File '{original_filename}' uploaded and processed successfully."
@@ -120,6 +133,14 @@ async def upload_file(
             except OSError as e:
                 logger.error(f"Error deleting temporary file {file_path}: {e}")
 
+@app.get("/documents", response_model=List[SimilarityResult])
+async def get_documents(
+    limit: int = 100,
+    service: DocumentService = Depends(get_document_service)
+):
+    """업로드된 모든 문서 목록을 조회합니다."""
+    logger.info("Received request to list all documents.")
+    return service.get_all_documents(limit=limit)
 
 @app.post("/search", response_model=List[SimilarityResult])
 async def search_documents(

@@ -1,6 +1,6 @@
 # service/document_service.py
 import logging
-from typing import List, Optional
+from typing import List, Optional, Dict, Any
 from fastapi import Depends, HTTPException
 from pathlib import Path
 from datetime import datetime, timezone
@@ -36,7 +36,12 @@ class DocumentService:
         logger.info("DocumentService initialized with dependencies.")
 
     # --- 문서 처리 및 저장 파이프라인 ---
-    def process_and_store_document(self, file_path: Path, original_filename: str) -> List[str]:
+    def process_and_store_document(
+            self, 
+            file_path: Path, 
+            original_filename: str,
+            metadata: Optional[Dict[str, Any]] = None
+        ) -> List[str]:
         """주어진 파일 경로의 문서를 로드, 분할, 임베딩하고 Repository를 통해 저장"""
         logger.info(f"Starting processing pipeline for document: {original_filename} ({file_path.name})")
         try:
@@ -53,13 +58,31 @@ class DocumentService:
                  return []
 
             # 3. 메타데이터 준비
-            metadata = {
+            # 기본값 설정
+            final_metadata = {
                 "title": original_filename or file_path.stem,
                 "authors": "Unknown",
                 "published": datetime.now(timezone.utc),
                 "doi": f"uploaded_{file_path.stem}"
             }
-            logger.debug(f"Prepared metadata for {original_filename}: {metadata}")
+
+            # 사용자 입력 메타데이터가 있으면 덮어쓰기
+            if metadata:
+                if metadata.get("title"):
+                    final_metadata["title"] = metadata["title"]
+                
+                if metadata.get("authors"):
+                    final_metadata["authors"] = metadata["authors"]
+                
+                if metadata.get("year"):
+                    try:
+                        # 연도만 들어오면 해당 연도 1월 1일로 설정
+                        year_val = int(metadata["year"])
+                        final_metadata["published"] = datetime(year_val, 1, 1, tzinfo=timezone.utc)
+                    except (ValueError, TypeError):
+                        logger.warning(f"Invalid year format provided: {metadata['year']}")
+
+            logger.debug(f"Prepared metadata for {original_filename}: {final_metadata}")
 
             # 4. 청크별 임베딩 생성 및 데이터 객체 리스트 생성
             processed_data_objects = []
@@ -67,15 +90,15 @@ class DocumentService:
             for i, chunk in enumerate(chunks):
                 try:
                     # Format text specifically for the embedding model if needed
-                    text_to_embed = f"{metadata.get('title', '')} [SEP] {chunk}"
+                    text_to_embed = f"{final_metadata.get('title', '')} [SEP] {chunk}"
                     embedding_vector = self.embedder.embed_text(text_to_embed)
 
                     data_object = {
-                        "title": metadata.get("title", ""),
+                        "title": final_metadata.get("title", ""),
                         "content": chunk,
-                        "authors": metadata.get("authors", ""),
-                        "published": metadata.get("published"),
-                        "doi": metadata.get('doi', f"uploaded_{metadata.get('title', 'unknown')}_{i}"),
+                        "authors": final_metadata.get("authors", ""),
+                        "published": final_metadata.get("published"),
+                        "doi": final_metadata.get('doi', f"uploaded_{final_metadata.get('title', 'unknown')}_{i}"),
                         "chunk_index": i,
                         "vector": embedding_vector
                     }
@@ -152,7 +175,7 @@ class DocumentService:
         except RuntimeError as rte: logger.error(f"Runtime error during author search: {rte}", exc_info=True); raise HTTPException(status_code=500, detail="Internal error during author search")
         except Exception as e: logger.error(f"Unexpected error during author search: {e}", exc_info=True); raise HTTPException(status_code=500, detail="Unexpected internal error during author search")
 
-    def get_all_documents(self, limit: Optional[int] = None) -> List[SimilarityResult]:
+    def get_all_documents(self, limit: int = 100) -> List[SimilarityResult]:
         logger.info(f"Fetching all documents (limit: {limit})...")
         try:
             return self.repository.get_all_documents(limit=limit)

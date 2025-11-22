@@ -135,28 +135,56 @@ class DocumentRepository:
             logger.error(f"Author search failed: {str(e)}", exc_info=True)
             raise RuntimeError("Database author search failed") from e
 
-    def get_all_documents(self, limit: Optional[int] = None) -> List[SimilarityResult]:
-        results = []
+    def get_all_documents(self, limit: int = 100) -> List[SimilarityResult]:
+        """저장된 모든 문서를 조회합니다. (최근 업로드 순)"""
         try:
+            # Weaviate에서 모든 객체 조회 (메타데이터 포함)
+            # distinct 처리를 위해 title이나 doi로 그룹화하면 좋지만, 
+            # 여기서는 단순하게 최근 객체들을 가져와서 코드 레벨에서 중복 제거를 합니다.
             collection = self.db_manager.get_collection()
             response = collection.query.fetch_objects(
-                limit=limit,
+                limit=limit or 100,
                 return_properties=["title", "content", "authors", "published", "doi", "chunk_index"],
-                include_vector=True
+                return_metadata=MetadataQuery(creation_time=True), # 생성 시간 메타데이터 요청
+                include_vector=False # 목록 조회에는 벡터 불필요
             )
-            for obj in response.objects:
-                results.append(SimilarityResult(
-                    title=obj.properties.get("title", ""), content=obj.properties.get("content", ""),
-                    authors=obj.properties.get("authors", ""), published=obj.properties.get("published"),
-                    doi=obj.properties.get("doi", ""), similarity_score=0.0, distance=1.0,
-                    vector=obj.vector.get("default") if obj.vector else None,
-                    chunk_index=obj.properties.get("chunk_index")
-                ))
-            logger.info(f"Fetched all documents: {len(results)} results found (limit: {limit}).")
+
+            # 메모리에서 최신순 정렬 (creation_time 기준 내림차순)
+            sorted_objects = sorted(
+                response.objects, 
+                key=lambda x: x.metadata.creation_time, 
+                reverse=True
+            )
+
+            # 제목(Title) 기준으로 중복 제거하여 논문 목록 생성
+            seen_titles = set()
+            results = []
+
+            for obj in sorted_objects:
+                title = obj.properties.get("title", "Unknown")
+                
+                if title not in seen_titles:
+                    seen_titles.add(title)
+                    
+                    # 결과 객체 생성
+                    results.append(SimilarityResult(
+                        title=title,
+                        content=obj.properties.get("content", "")[:200], # 내용 미리보기
+                        authors=obj.properties.get("authors", "Unknown"),
+                        published=obj.properties.get("published"),
+                        doi=obj.properties.get("doi", ""),
+                        similarity_score=0.0,
+                        distance=0.0,
+                        vector=None,
+                        chunk_index=obj.properties.get("chunk_index")
+                    ))
+            
+            logger.info(f"Fetched all documents: {len(results)} unique papers found.")
             return results
+
         except Exception as e:
-            logger.error(f"Failed to fetch all documents: {str(e)}", exc_info=True)
-            raise RuntimeError("Database fetch all documents failed") from e
+            logger.error(f"Failed to fetch all documents: {e}")
+            raise RuntimeError(f"Database error: {e}")
 
 
 # --- 팩토리 함수 ---
