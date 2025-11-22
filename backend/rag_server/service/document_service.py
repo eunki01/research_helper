@@ -182,6 +182,27 @@ class DocumentService:
         except RuntimeError as rte: logger.error(f"Runtime error fetching all documents: {rte}", exc_info=True); raise HTTPException(status_code=500, detail="Internal error fetching documents")
         except Exception as e: logger.error(f"Unexpected error fetching all documents: {e}", exc_info=True); raise HTTPException(status_code=500, detail="Unexpected internal error fetching documents")
 
+    def update_document(self, doc_id: str, update_data: Dict[str, Any]) -> bool:
+        """문서 메타데이터 수정"""
+        logger.info(f"Request to update document {doc_id} with {update_data}")
+        
+        # 데이터 정제 (None 값 제거)
+        updates = {k: v for k, v in update_data.items() if v is not None}
+        
+        # 연도(year) 처리: datetime으로 변환
+        if 'year' in updates:
+            try:
+                year_val = int(updates.pop('year'))
+                updates['published'] = datetime(year_val, 1, 1, tzinfo=timezone.utc)
+            except (ValueError, TypeError):
+                pass
+
+        return self.repository.update_document(doc_id, updates)
+
+    def delete_document(self, doc_id: str) -> bool:
+        """문서 삭제"""
+        logger.info(f"Request to delete document {doc_id}")
+        return self.repository.delete_document(doc_id)
 
 # --- 팩토리 함수 ---
 def get_document_service(

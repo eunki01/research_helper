@@ -1,4 +1,5 @@
 # repository/document_repository.py
+from uuid import UUID
 from typing import List, Optional, Dict, Any
 import logging
 from weaviate.classes.query import Filter, MetadataQuery
@@ -139,8 +140,6 @@ class DocumentRepository:
         """저장된 모든 문서를 조회합니다. (최근 업로드 순)"""
         try:
             # Weaviate에서 모든 객체 조회 (메타데이터 포함)
-            # distinct 처리를 위해 title이나 doi로 그룹화하면 좋지만, 
-            # 여기서는 단순하게 최근 객체들을 가져와서 코드 레벨에서 중복 제거를 합니다.
             collection = self.db_manager.get_collection()
             response = collection.query.fetch_objects(
                 limit=limit or 100,
@@ -152,7 +151,7 @@ class DocumentRepository:
             # 메모리에서 최신순 정렬 (creation_time 기준 내림차순)
             sorted_objects = sorted(
                 response.objects, 
-                key=lambda x: x.metadata.creation_time, 
+                key=lambda x: x.metadata.creation_time if x.metadata else 0, 
                 reverse=True
             )
 
@@ -161,22 +160,25 @@ class DocumentRepository:
             results = []
 
             for obj in sorted_objects:
-                title = obj.properties.get("title", "Unknown")
+                props = obj.properties or {}
+
+                title = props.get("title", "Unknown")
                 
                 if title not in seen_titles:
                     seen_titles.add(title)
                     
                     # 결과 객체 생성
                     results.append(SimilarityResult(
+                        id=str(obj.uuid),
                         title=title,
-                        content=obj.properties.get("content", "")[:200], # 내용 미리보기
-                        authors=obj.properties.get("authors", "Unknown"),
-                        published=obj.properties.get("published"),
-                        doi=obj.properties.get("doi", ""),
+                        content=props.get("content", "")[:200], # 내용 미리보기
+                        authors=props.get("authors", "Unknown"),
+                        published=props.get("published"),
+                        doi=props.get("doi", ""),
                         similarity_score=0.0,
                         distance=0.0,
                         vector=None,
-                        chunk_index=obj.properties.get("chunk_index")
+                        chunk_index=props.get("chunk_index")
                     ))
             
             logger.info(f"Fetched all documents: {len(results)} unique papers found.")
@@ -186,6 +188,74 @@ class DocumentRepository:
             logger.error(f"Failed to fetch all documents: {e}")
             raise RuntimeError(f"Database error: {e}")
 
+    def update_document(self, doc_id: str, updates: Dict[str, Any]) -> bool:
+        """문서(및 해당 문서의 모든 청크)의 메타데이터를 수정합니다."""
+        try:
+            collection = self.db_manager.get_collection()
+            
+            # 1. 원본 문서의 제목 등을 찾기 위해 해당 ID의 객체 조회
+            obj = collection.query.fetch_object_by_id(doc_id)
+            if not obj:
+                logger.warning(f"Document with ID {doc_id} not found.")
+                return False
+            
+            props = obj.properties or {}
+            current_title = props.get("title")
+            
+            # 2. 동일한 제목을 가진 모든 청크(Chunk) 검색
+            # (RAG는 문서를 청크로 쪼개서 저장하므로, 메타데이터 수정 시 모든 청크를 업데이트해야 함)
+            if current_title:
+                chunks_response = collection.query.fetch_objects(
+                    filters=Filter.by_property("title").equal(current_title),
+                    limit=1000
+                )
+                
+                logger.info(f"Updating metadata for {len(chunks_response.objects)} chunks of '{current_title}'")
+
+                # batch.add_object 대신 data.update 사용 (Merge 방식)
+                # 메타데이터 수정은 빈도가 낮으므로 루프로 처리해도 안전함
+                for chunk in chunks_response.objects:
+                    collection.data.update(
+                        uuid=chunk.uuid,
+                        properties=updates
+                    )
+            else:
+                # 제목조차 없는 손상된 데이터일 경우 ID 기반으로 단일 객체만 업데이트 시도
+                collection.data.update(uuid=doc_id, properties=updates)
+
+            return True
+
+        except Exception as e:
+            logger.error(f"Failed to update document {doc_id}: {e}", exc_info=True)
+            raise RuntimeError(f"Database update failed for {doc_id}") from e
+
+    def delete_document(self, doc_id: str) -> bool:
+        """문서(및 해당 문서의 모든 청크)를 삭제합니다."""
+        try:
+            collection = self.db_manager.get_collection()
+            
+            # 1. 삭제 대상 식별 (제목 기준)
+            obj = collection.query.fetch_object_by_id(doc_id)
+            if not obj:
+                return False
+            
+            props = obj.properties or {}
+            target_title = props.get("title")
+            
+            if target_title:
+                logger.info(f"Deleting all chunks for document title: '{target_title}'")
+                collection.data.delete_many(
+                    where=Filter.by_property("title").equal(target_title)
+                )
+            else:
+                # 제목이 없으면 해당 ID만 삭제
+                collection.data.delete_by_id(doc_id)
+
+            return True
+
+        except Exception as e:
+            logger.error(f"Failed to delete document {doc_id}: {e}", exc_info=True)
+            raise RuntimeError(f"Database deletion failed for {doc_id}") from e
 
 # --- 팩토리 함수 ---
 def get_repository(

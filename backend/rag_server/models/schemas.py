@@ -7,6 +7,7 @@ from core.config import settings
 
 class SimilarityResult(BaseModel):
     """유사도 검색 결과로 반환되는 단일 청크 정보를 담는 모델"""
+    id: Optional[str] = None
     title: str = Field(..., description="원본 문서의 제목")
     content: str = Field(..., description="청크의 텍스트 원문")
     authors: str = Field(..., description="원본 문서의 저자")
@@ -48,3 +49,8 @@ class AuthorSearchRequest(BaseModel):
     """저자명 검색 요청 모델"""
     author_query: str = Field(..., description="저자명 검색어")
     limit: Optional[int] = Field(settings.DEFAULT_SEARCH_LIMIT, description="최대 반환 결과 수")
+
+class UpdateDocumentRequest(BaseModel):
+    title: Optional[str] = None
+    authors: Optional[str] = None
+    year: Optional[int] = None

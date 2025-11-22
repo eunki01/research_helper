@@ -8,7 +8,7 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 
 from core.config import settings
-from models.schemas import UploadResponse, SimilarityResult, SearchRequest, TitleSearchRequest, AuthorSearchRequest
+from models.schemas import UploadResponse, SimilarityResult, SearchRequest, TitleSearchRequest, AuthorSearchRequest, UpdateDocumentRequest
 from database.weaviate_db import db_manager_instance as db_manager, get_db_manager, WeaviateManager
 from utils.file_handler import FileHandler, get_file_handler
 from service.document_service import DocumentService, get_document_service
@@ -141,6 +141,29 @@ async def get_documents(
     """업로드된 모든 문서 목록을 조회합니다."""
     logger.info("Received request to list all documents.")
     return service.get_all_documents(limit=limit)
+
+@app.put("/documents/{doc_id}")
+async def update_document_metadata(
+    doc_id: str,
+    request: UpdateDocumentRequest,
+    service: DocumentService = Depends(get_document_service)
+):
+    """문서 메타데이터(제목, 저자, 연도)를 수정합니다."""
+    success = service.update_document(doc_id, request.model_dump())
+    if not success:
+        raise HTTPException(status_code=404, detail="Document not found or update failed")
+    return {"message": "Document updated successfully", "id": doc_id}
+
+@app.delete("/documents/{doc_id}")
+async def delete_document(
+    doc_id: str,
+    service: DocumentService = Depends(get_document_service)
+):
+    """문서를 삭제합니다."""
+    success = service.delete_document(doc_id)
+    if not success:
+        raise HTTPException(status_code=404, detail="Document not found or deletion failed")
+    return {"message": "Document deleted successfully", "id": doc_id}
 
 @app.post("/search", response_model=List[SimilarityResult])
 async def search_documents(
