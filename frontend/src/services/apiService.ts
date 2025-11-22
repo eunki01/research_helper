@@ -7,6 +7,13 @@ import type {
   UploadResponse
 } from '../types/api';
 
+// [추가] 업로드 시 사용할 메타데이터 타입 정의
+export interface PaperMetadata {
+  title?: string;
+  authors?: string;
+  year?: number;
+}
+
 // 환경 변수에서 API URL 가져오기
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
 const RAG_SERVER_URL = import.meta.env.VITE_RAG_SERVER_URL || 'http://localhost:8001';
@@ -69,11 +76,31 @@ export class ApiService {
   }
 
   /**
+   * 업로드된 문서 목록 조회
+   */
+  static async getDocuments(): Promise<any[]> {
+    const response = await fetch(`${RAG_SERVER_URL}/documents?limit=50`);
+
+    if (!response.ok) {
+      throw new Error(`문서 목록 조회 실패: ${response.status} ${response.statusText}`);
+    }
+
+    return response.json();
+  }
+
+  /**
    * 파일 업로드
    */
-  static async uploadFile(file: File): Promise<UploadResponse> {
+  static async uploadFile(file: File, metadata?: PaperMetadata): Promise<UploadResponse> {
     const formData = new FormData();
     formData.append('file', file);
+
+    // 메타데이터가 존재하면 FormData에 추가
+    if (metadata) {
+      if (metadata.title) formData.append('title', metadata.title);
+      if (metadata.authors) formData.append('authors', metadata.authors);
+      if (metadata.year) formData.append('year', metadata.year.toString());
+    }
 
     const response = await fetch(`${RAG_SERVER_URL}/upload`, {
       method: 'POST',
