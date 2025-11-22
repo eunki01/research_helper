@@ -89,6 +89,40 @@ export class ApiService {
   }
 
   /**
+   * 문서 메타데이터 수정
+   */
+  static async updatePaper(docId: string, metadata: PaperMetadata): Promise<{ message: string; id: string }> {
+    const response = await fetch(`${RAG_SERVER_URL}/documents/${docId}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(metadata),
+    });
+
+    if (!response.ok) {
+      throw new Error(`문서 수정 실패: ${response.status} ${response.statusText}`);
+    }
+
+    return response.json();
+  }
+
+  /**
+   * 문서 삭제
+   */
+  static async deletePaper(docId: string): Promise<{ message: string; id: string }> {
+    const response = await fetch(`${RAG_SERVER_URL}/documents/${docId}`, {
+      method: 'DELETE',
+    });
+
+    if (!response.ok) {
+      throw new Error(`문서 삭제 실패: ${response.status} ${response.statusText}`);
+    }
+
+    return response.json();
+  }
+
+  /**
    * 파일 업로드
    */
   static async uploadFile(file: File, metadata?: PaperMetadata): Promise<UploadResponse> {
