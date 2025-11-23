@@ -1,8 +1,7 @@
 # services/query_service.py
 import httpx
 import logging
-import datetime
-from typing import List, Dict, Any
+from typing import List, Dict, Any, AsyncGenerator
 from fastapi import HTTPException, Depends
 from collections import defaultdict
 from schemas.search import (
@@ -11,7 +10,7 @@ from schemas.search import (
     ExternalSearchResponse, ExternalReference,
     SimilarityLink
 )
-
+from schemas.chat import Message
 from core.config import settings
 from services.llm_service import LLMService, get_llm_service # LLM 서비스와 팩토리 함수 import
 from services.similarity_service import SimilarityService, get_similarity_service # 유사도 서비스와 팩토리 함수 import
@@ -37,11 +36,7 @@ class QueryService:
             response.raise_for_status()
             search_results = response.json()
             
-            # 2. LLM 컨텍스트 구성 및 답변 생성
-            context = self._build_internal_context(search_results)
-            llm_answer = await self.llm_service.get_final_response(context, request.query_text)
-
-            # 3. 최종 응답 데이터 구성 (references)
+            # 2. 최종 응답 데이터 구성 (references)
             # 청크를 문서(DOI) 기준으로 그룹화
             grouped_references = defaultdict(lambda: {"chunks": [], "meta": {}})
             
@@ -84,16 +79,16 @@ class QueryService:
                     )
                 )
             
-            # 4. 논문 간 유사도 계산
+            # 3. 논문 간 유사도 계산
             papers_for_similarity = [{"paperId": ref.paperId, "embedding": doc.get("vector")} for ref, doc in zip(references, search_results) if doc.get("vector")]
             similarity_graph_data = self.similarity_service.calculate_similarity_graph(papers_for_similarity)
             similarity_graph = [SimilarityLink(**link) for link in similarity_graph_data]
             
             
-            # 5. 최종 응답 반환
+            # 4. 최종 응답 반환
             return InternalSearchResponse( # InternalSearchResponse 모델로 반환
                 query=request.query_text,
-                answer=llm_answer,
+                answer=None,
                 references=references,
                 similarity_graph=similarity_graph
             )
@@ -164,6 +159,38 @@ class QueryService:
             raise HTTPException(status_code=e.response.status_code, detail=f"외부 서버 오류: {e.response.text}")
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"외부 검색 처리 중 오류 발생: {str(e)}")
+
+    async def chat_stream(self, query: str, history: List[Message], target_paper_ids: List[str] = None) -> AsyncGenerator[str, None]:
+        """RAG 검색 결과를 기반으로 LLM 답변을 스트리밍"""
+        
+        # 1. 질문에 적합한 컨텍스트 검색
+        # (현재는 간단히 RAG 검색 API 재사용. 추후엔 paper_ids 필터링 적용 가능)
+        search_payload = {"query_text": query, "limit": 5}
+        context = ""
+
+        try:
+            response = await self.http_client.post(
+                f"{settings.LOCAL_BACKEND_SERVER_URL}/search",
+                json=search_payload
+            )
+            if response.status_code == 200:
+                results = response.json()
+                # 문맥 구성
+                context = "\n\n---\n\n".join([chunk.get("content", "") for chunk in results])
+                
+                # (옵션) 만약 특정 논문만 대상으로 한다면, results에서 필터링
+                if target_paper_ids:
+                    # 예시 로직: title이나 doi에 ID가 포함된 것만 사용
+                    # 실제로는 RAG 서버에 필터 파라미터를 보내는 것이 효율적
+                    pass
+        except Exception as e:
+            logger.error(f"Context fetch failed: {e}")
+            context = "컨텍스트 검색에 실패하여 일반적인 지식으로 답변합니다."
+
+        # 2. LLM 스트리밍 호출
+        history_dicts = [msg.model_dump() for msg in history]
+        async for token in self.llm_service.stream_chat(context, history_dicts, query):
+            yield token
 
     def _build_internal_context(self, chunks: List[Dict[str, Any]]) -> str:
         """내부 검색 결과를 LLM 컨텍스트로 구성"""
