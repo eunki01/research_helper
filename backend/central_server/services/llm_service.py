@@ -1,5 +1,6 @@
 # services/llm_service.py
 import logging
+from typing import List, Dict, AsyncGenerator
 from openai import AsyncOpenAI
 from core.config import settings
 
@@ -36,7 +37,7 @@ class LLMService:
         
         try:
             response = await self.client.chat.completions.create(
-                model="gpt-4", # 또는 다른 LLM 모델
+                model="gpt-4.1-nano", # 또는 다른 LLM 모델
                 messages=[
                     {"role": "system", "content": "You are a helpful research assistant."},
                     {"role": "user", "content": prompt}
@@ -63,7 +64,7 @@ class LLMService:
         
         try:
             response = await self.client.chat.completions.create(
-                model="gpt-4.1", # 더 빠르거나 저렴한 모델을 사용하거나 gpt-4를 사용할 수 있습니다.
+                model="gpt-4.1-nano", # 더 빠르거나 저렴한 모델을 사용하거나 gpt-4를 사용할 수 있습니다.
                 messages=[
                     {"role": "system", "content": "You are a helpful assistant specialized in extracting keywords for academic search."},
                     {"role": "user", "content": prompt}
@@ -76,6 +77,42 @@ class LLMService:
             logger.error(f"키워드 확장 실패: {str(e)}")
             # 오류 발생 시 원본 쿼리를 그대로 반환
             return query
+    
+    async def stream_chat(self, context: str, history: List[Dict], query: str) -> AsyncGenerator[str, None]:
+        """컨텍스트와 대화 기록을 기반으로 답변을 스트리밍합니다."""
+        
+        system_prompt = f"""
+        You are a helpful research assistant. 
+        Use the following context to answer the user's question.
+        If the context doesn't contain the answer, use your knowledge but prioritize the context.
+        
+        답변은 한국어로 작성해주세요.
+        Context:
+        {context}
+        """
+
+        messages = [{"role": "system", "content": system_prompt}]
+        
+        # 이전 대화 기록 추가 (최근 6개만 유지하여 토큰 제한 관리)
+        for msg in history[-6:]:
+            messages.append({"role": msg["role"], "content": msg["content"]})
+            
+        messages.append({"role": "user", "content": query})
+
+        try:
+            stream = await self.client.chat.completions.create(
+                model="gpt-4.1-nano",
+                messages=messages,
+                stream=True
+            )
+
+            async for chunk in stream:
+                if chunk.choices[0].delta.content is not None:
+                    yield chunk.choices[0].delta.content
+
+        except Exception as e:
+            logger.error(f"LLM streaming error: {e}")
+            yield f"\n[Error generating response: {str(e)}]"
     
 def get_llm_service() -> LLMService:
     """FastAPI Depends를 위한 LLMService 인스턴스 반환 함수"""

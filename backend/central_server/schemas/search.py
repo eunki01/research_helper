@@ -38,7 +38,7 @@ class InternalDocumentReference(BaseModel):
 class InternalSearchResponse(BaseModel):
     """내부 검색 API의 최종 응답 모델"""
     query: str = Field(..., description="사용자가 요청한 원본 쿼리")
-    answer: str = Field(..., description="LLM이 생성한 최종 답변 (Markdown 형식)")
+    answer: Optional[str] = Field(None, description="LLM이 생성한 최종 답변 (Markdown 형식)")
     references: List[InternalDocumentReference] = Field(..., description="답변의 근거가 된 내부 문서 및 청크 목록")
     similarity_graph: List[SimilarityLink] = Field(..., description="참고 문헌 간의 유사도 관계 그래프")
 
@@ -59,6 +59,6 @@ class ExternalReference(BaseModel):
 class ExternalSearchResponse(BaseModel):
     """외부 검색 API의 최종 응답 모델"""
     query: str = Field(..., description="사용자가 요청한 원본 쿼리")
-    answer: str = Field(..., description="LLM이 생성한 최종 답변")
+    answer: Optional[str] = Field(None, description="LLM이 생성한 최종 답변")
     references: List[ExternalReference] = Field(..., description="답변의 근거가 된 외부 논문 목록")
     similarity_graph: List[SimilarityLink] = Field(..., description="참고 문헌 간의 유사도 관계 그래프")
