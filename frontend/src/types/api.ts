@@ -1,5 +1,17 @@
 // API 명세서 기반 타입 정의
 
+// ==================== 채팅 관련 ====================
+export interface Message {
+  role: 'user' | 'assistant' | 'system';
+  content: string;
+}
+
+export interface ChatRequest {
+  query: string;
+  history: Message[];
+  target_paper_ids?: string[];
+}
+
 // ==================== 외부 검색 관련 ====================
 export interface ExternalSearchRequest {
   query_text: string;
@@ -27,7 +39,7 @@ export interface SimilarityLink {
 
 export interface ExternalSearchResponse {
   query: string;
-  answer: string;
+  answer?: string;
   references: ExternalReference[];
   similarity_graph: SimilarityLink[];
 }
@@ -55,7 +67,7 @@ export interface InternalDocumentReference {
 
 export interface InternalSearchResponse {
   query: string;
-  answer: string;
+  answer?: string;
   references: InternalDocumentReference[];
   similarity_graph: SimilarityLink[];
 }
@@ -66,6 +78,13 @@ export interface UploadResponse {
   message: string;
   upload_timestamp: string;
 }
+
+export interface PaperMetadata {
+  title?: string;
+  authors?: string;
+  year?: number;
+}
+
 
 // ==================== Semantic Scholar API 관련 ====================
 export interface SearchRequest {

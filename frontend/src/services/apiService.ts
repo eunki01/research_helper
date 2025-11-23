@@ -4,15 +4,11 @@ import type {
   ExternalSearchResponse,
   InternalSearchRequest,
   InternalSearchResponse,
-  UploadResponse
+  UploadResponse,
+  ChatRequest,
+  Message,
+  PaperMetadata
 } from '../types/api';
-
-// [추가] 업로드 시 사용할 메타데이터 타입 정의
-export interface PaperMetadata {
-  title?: string;
-  authors?: string;
-  year?: number;
-}
 
 // 환경 변수에서 API URL 가져오기
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
@@ -73,6 +69,54 @@ export class ApiService {
     }
 
     return response.json();
+  }
+
+  /**
+   * 채팅 스트리밍
+   * Generator를 사용하여 스트리밍 데이터를 실시간으로 yield 합니다.
+   */
+  static async *chatStream(
+    query: string,
+    history: Message[],
+    targetPaperIds?: string[]
+  ): AsyncGenerator<string, void, unknown> {
+    const request: ChatRequest = {
+      query,
+      history,
+      target_paper_ids: targetPaperIds
+    };
+
+    const response = await fetch(`${API_BASE_URL}/chat/stream`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(request),
+    });
+
+    if (!response.ok) {
+      throw new Error(`채팅 요청 실패: ${response.status} ${response.statusText}`);
+    }
+
+    if (!response.body) {
+      throw new Error('응답 바디가 비어있습니다.');
+    }
+
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder('utf-8');
+
+    try {
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        
+        // 청크 디코딩 후 반환
+        const chunk = decoder.decode(value, { stream: true });
+        yield chunk;
+      }
+    } finally {
+      reader.releaseLock();
+    }
   }
 
   /**

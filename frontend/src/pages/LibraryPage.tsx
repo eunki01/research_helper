@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import ApiService from '../services/apiService';
 import PaperUploadForm from '../components/library/PaperUploadForm';
 import PaperEditModal from '../components/library/PaperEditModal';
+import ChatPanel from '../components/chat/ChatPanel';
 import type { LibraryPaper } from '../types/paper';
 
 interface LibraryPageProps {
@@ -18,6 +19,7 @@ const LibraryPage: React.FC<LibraryPageProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [showChat, setShowChat] = useState(false);
   
   // UI 모드 및 모달 상태
   const [isUploadMode, setIsUploadMode] = useState(false);
@@ -285,6 +287,55 @@ const LibraryPage: React.FC<LibraryPageProps> = ({
             )}
           </>
         )}
+      </div>
+
+      {/* ==================== 채팅 플로팅 버튼 & 패널 ==================== */}
+      
+      {/* 1. 플로팅 버튼 (FAB) */}
+      <button
+        onClick={() => setShowChat(!showChat)}
+        className={`fixed bottom-8 right-8 p-4 rounded-full shadow-lg transition-all duration-300 z-40 flex items-center justify-center ${
+          showChat 
+            ? 'bg-gray-800 text-white rotate-90' 
+            : 'bg-blue-600 text-white hover:bg-blue-700 hover:scale-110'
+        }`}
+        title="AI 연구 보조원과 대화하기"
+      >
+        {showChat ? (
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        ) : (
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+          </svg>
+        )}
+      </button>
+
+      {/* 2. 채팅 패널 (팝오버 형태) */}
+      <div 
+        className={`fixed bottom-24 right-8 w-[400px] h-[600px] bg-white rounded-2xl shadow-2xl border border-gray-200 z-40 overflow-hidden transition-all duration-300 origin-bottom-right ${
+          showChat 
+            ? 'opacity-100 scale-100 translate-y-0' 
+            : 'opacity-0 scale-95 translate-y-4 pointer-events-none'
+        }`}
+      >
+        <div className="h-full flex flex-col">
+          <div className="bg-blue-600 p-4 text-white flex justify-between items-center">
+            <h3 className="font-semibold flex items-center">
+              <span className="mr-2 text-xl">🤖</span> 
+              Research Assistant
+            </h3>
+            <span className="text-xs bg-blue-500 px-2 py-1 rounded-full">Beta</span>
+          </div>
+          
+          <div className="flex-1 overflow-hidden">
+            <ChatPanel 
+              placeholder="내 라이브러리의 논문들에 대해 질문해보세요..." 
+              className="h-full"
+            />
+          </div>
+        </div>
       </div>
 
       {/* 수정 모달 */}

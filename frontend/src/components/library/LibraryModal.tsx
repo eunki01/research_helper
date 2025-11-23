@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import ApiService from '../../services/apiService';
-import { LibraryService } from '../../services/libraryService';
 import type { LibraryPaper } from '../../types/paper';
 import PaperUploadForm from './PaperUploadForm';
 
@@ -65,7 +64,7 @@ const LibraryModal: React.FC<LibraryModalProps> = ({
   );
 
   // 파일 업로드 처리
-  const handleFileUpload = (filename: string) => {
+  const handleFileUpload = () => {
     fetchDocuments().then(() => {
        setIsUploadMode(false);
     });
