@@ -11,6 +11,7 @@ export interface VisualizationView {
   id: string;
   title: string;
   graph: PaperGraph;
+  query: string;
   createdAt: string;
   breadcrumbPath: BreadcrumbItem[];
 }

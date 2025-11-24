@@ -30,20 +30,17 @@ const VisualizationSlide: React.FC<VisualizationSlideProps> = ({
   // 노드 클릭 처리 (더블클릭으로 확장, 로딩 표시 없음)
   const handleNodeClick = async (nodeId: string) => {
     try {
-      // 새로운 시각화 생성 (로딩 표시 없이)
       await onNodeClick(nodeId);
     } catch (error) {
       console.error('Node expansion failed:', error);
     }
   };
 
-  // 사이드바 확장 버튼 클릭 처리 (로딩 표시 포함)
+  // 사이드바 확장 버튼 클릭 처리 로직
   const handleSidebarExplore = async (nodeId: string) => {
-    // 로딩 상태 설정
     setIsExpanding(true);
     
     try {
-      // 새로운 시각화 생성
       if (onSidebarExplore) {
         await onSidebarExplore(nodeId);
       } else {
@@ -52,12 +49,18 @@ const VisualizationSlide: React.FC<VisualizationSlideProps> = ({
     } catch (error) {
       console.error('Node expansion failed:', error);
     } finally {
-      // 로딩 상태 해제
       setIsExpanding(false);
     }
   };
 
-  // 노드 단일 클릭 처리 (사이드 패널 정보 표시)
+  // [수정] 사이드바에 전달할 파라미터 없는 래퍼 함수
+  const onExploreWrapper = () => {
+    if (selectedPaper) {
+      handleSidebarExplore(selectedPaper.id);
+    }
+  };
+
+  // 노드 단일 클릭 처리
   const handleNodeSelect = useCallback((event: CustomEvent) => {
     const { nodeId } = event.detail;
     const node = view.graph.nodes.find((n: any) => n.id === nodeId);
@@ -111,9 +114,9 @@ const VisualizationSlide: React.FC<VisualizationSlideProps> = ({
 
           {/* 그래프 컴포넌트 */}
           <GraphComponent
-            graph={view.graph}
+            graphData={view.graph} // [수정] prop 이름 변경 graph -> graphData
             onNodeClick={handleNodeClick}
-            selectedNodeId={selectedPaper?.id}
+            selectedNodeIds={selectedPaper ? [selectedPaper.id] : []} // [수정] 배열로 전달
             isExpanding={isExpanding}
             searchMode={view.graph.searchMode}
           />
@@ -136,23 +139,14 @@ const VisualizationSlide: React.FC<VisualizationSlideProps> = ({
               </svg>
             </button>
           </div>
-
-          {/* 로딩 오버레이 (노드 확장 중일 때) */}
-          {isExpanding && (
-            <div className="absolute inset-0 bg-black bg-opacity-30 flex items-center justify-center z-20">
-              <div className="bg-white rounded-xl p-8 text-center shadow-2xl border-2 border-gray-200">
-                <div className="animate-spin w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full mx-auto mb-6"></div>
-                <p className="text-gray-700 font-semibold text-lg mb-2">관련 논문을 찾고 있습니다...</p>
-                <p className="text-base text-gray-500">잠시만 기다려주세요</p>
-              </div>
-            </div>
-          )}
         </div>
 
         {/* 사이드 패널 */}
         <Sidebar 
-          selectedPaper={selectedPaper?.data as any} 
-          onExplorePaper={handleSidebarExplore}
+          selectedPaper={selectedPaper?.data as any}
+          // [수정] 선택된 논문을 시드 논문으로도 간주하여 탐색 버튼 활성화
+          searchSeedPaper={selectedPaper?.data as any}
+          onExplorePaper={onExploreWrapper} // [수정] 래퍼 함수 전달
         />
       </div>
     </div>

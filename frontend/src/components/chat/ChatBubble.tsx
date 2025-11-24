@@ -53,7 +53,6 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({ message }) => {
               ),
               // 코드 블록 및 인라인 코드 스타일링
               code: ({node, className, ...props}) => {
-                const isInline = !className; // 간단한 인라인 체크
                 return (
                   <code 
                     className={`${className} ${

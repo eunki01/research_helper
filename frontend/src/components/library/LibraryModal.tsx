@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom'; // [추가] Portal 사용을 위한 import
 import ApiService from '../../services/apiService';
 import type { LibraryPaper } from '../../types/paper';
 import PaperUploadForm from './PaperUploadForm';
@@ -9,7 +10,6 @@ interface LibraryModalProps {
   onSelectPaper: (paper: LibraryPaper) => void;
   selectedPaperId?: string;
 }
-
 
 const LibraryModal: React.FC<LibraryModalProps> = ({
   isOpen,
@@ -22,21 +22,21 @@ const LibraryModal: React.FC<LibraryModalProps> = ({
   const [searchQuery, setSearchQuery] = useState('');
   const [isUploadMode, setIsUploadMode] = useState(false);
 
-  // 백엔드에서 문서 목록 불러오기
   const fetchDocuments = async () => {
     try {
       setIsLoading(true);
       const docs = await ApiService.getDocuments();
       
-      // 백엔드 응답을 LibraryPaper 형식으로 변환
       const libraryPapers: LibraryPaper[] = docs.map((doc: any, index: number) => ({
-        id: doc.doi || `doc-${index}`,
+        id: doc.id || doc.doi || `doc-${index}`, // id 호환성 체크
         title: doc.title,
-        authors: [{ name: doc.authors || 'Unknown' }],
+        authors: doc.authors 
+          ? (typeof doc.authors === 'string' ? [{ name: doc.authors }] : doc.authors) // 저자 형식 호환성
+          : [{ name: 'Unknown' }],
         type: 'paper',
         publicationDate: doc.published,
         abstract: doc.content,
-        uploadedAt: doc.published, // 또는 현재 시간
+        uploadedAt: doc.published,
         isSeed: false
       }));
 
@@ -48,7 +48,6 @@ const LibraryModal: React.FC<LibraryModalProps> = ({
     }
   };
 
-  // 모달이 열릴 때마다 라이브러리 데이터 로드
   useEffect(() => {
     if (isOpen) {
       fetchDocuments();
@@ -57,20 +56,17 @@ const LibraryModal: React.FC<LibraryModalProps> = ({
     }
   }, [isOpen]);
 
-  // 검색 필터링
   const filteredPapers = papers.filter(paper => 
     paper.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
     paper.authors.some(a => a.name.toLowerCase().includes(searchQuery.toLowerCase()))
   );
 
-  // 파일 업로드 처리
-  const handleFileUpload = () => {
+  const handleUploadSuccess = () => {
     fetchDocuments().then(() => {
        setIsUploadMode(false);
     });
   };
 
-  // 논문 선택
   const handlePaperSelect = (paper: LibraryPaper) => {
     onSelectPaper(paper);
     onClose();
@@ -78,9 +74,10 @@ const LibraryModal: React.FC<LibraryModalProps> = ({
 
   if (!isOpen) return null;
 
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 transition-opacity">
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[85vh] overflow-hidden flex flex-col">
+  // [수정] Portal을 사용하여 document.body에 직접 렌더링
+  return createPortal(
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[100] transition-opacity">
+      <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[85vh] overflow-hidden flex flex-col m-4">
         
         {/* 헤더 */}
         <div className="p-6 border-b border-gray-200 flex-shrink-0">
@@ -126,16 +123,14 @@ const LibraryModal: React.FC<LibraryModalProps> = ({
           )}
         </div>
 
-        {/* 컨텐츠 영역 (스크롤 가능) */}
+        {/* 컨텐츠 영역 */}
         <div className="p-6 overflow-y-auto flex-1">
           {isUploadMode ? (
-            /* 업로드 폼 뷰 */
             <PaperUploadForm 
-              onSuccess={handleFileUpload}
+              onSuccess={handleUploadSuccess}
               onCancel={() => setIsUploadMode(false)}
             />
           ) : (
-            /* 리스트 뷰 */
             <>
               { isLoading ? (
                 <div className="text-center py-12">
@@ -184,7 +179,7 @@ const LibraryModal: React.FC<LibraryModalProps> = ({
                               <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                               </svg>
-                              {paper.authors[0]?.name || 'Unknown Author'}
+                              {paper.authors[0]?.name || 'Unknown'}
                               {paper.authors.length > 1 && ` 외 ${paper.authors.length - 1}명`}
                             </span>
                             {paper.publicationDate && (
@@ -198,7 +193,6 @@ const LibraryModal: React.FC<LibraryModalProps> = ({
                           </div>
                         </div>
                         
-                        {/* 선택 상태 표시 아이콘 */}
                         <div className={`flex-shrink-0 w-6 h-6 rounded-full border-2 flex items-center justify-center ${
                           selectedPaperId === paper.id
                             ? 'border-blue-600 bg-blue-600 text-white'
@@ -217,7 +211,6 @@ const LibraryModal: React.FC<LibraryModalProps> = ({
           )}
         </div>
 
-        {/* 푸터: 선택된 항목이 있고, 리스트 뷰일 때만 표시 */}
         {!isUploadMode && selectedPaperId && (
           <div className="p-4 border-t border-gray-200 bg-gray-50 flex-shrink-0">
             <div className="flex items-center justify-between">
@@ -237,10 +230,9 @@ const LibraryModal: React.FC<LibraryModalProps> = ({
           </div>
         )}
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
 
 export default LibraryModal;
-
-

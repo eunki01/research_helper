@@ -63,6 +63,7 @@ export class SearchService {
       id: viewId,
       title: query,
       graph,
+      query,
       createdAt: new Date().toISOString(),
       breadcrumbPath: parentBreadcrumbPath 
         ? [...parentBreadcrumbPath, newBreadcrumbItem]
@@ -119,6 +120,7 @@ export class SearchService {
     return {
       id: viewId,
       title: query,
+      query,
       graph,
       createdAt: new Date().toISOString(),
       breadcrumbPath: parentBreadcrumbPath 
