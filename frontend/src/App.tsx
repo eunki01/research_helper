@@ -5,10 +5,16 @@ import MainLayout from './components/layout/MainLayout';
 import HomePage from './pages/HomePage';
 import VisualizationPage from './pages/VisualizationPage';
 import LibraryPage from './pages/LibraryPage';
+import { LoginPage } from './pages/LoginPage';
+import { RegisterPage } from './pages/RegisterPage';
+import { EmailVerificationPage } from './pages/EmailVerificationPage';
+import { EmailVerificationPendingPage } from './pages/EmailVerificationPendingPage';
+
 import { LibraryService } from './services/libraryService';
 import ApiService from './services/apiService';
 import SearchService from './services/searchService';
 import { ThemeProvider, useTheme } from './context/ThemeContext';
+import { AuthProvider, useAuth } from './context/AuthContext';
 import type { VisualizationState } from './types/visualization';
 import type { SearchMode } from './types/search';
 import type { LibraryPaper } from './types/paper';
@@ -16,8 +22,11 @@ import type { LibraryPaper } from './types/paper';
 // App 컴포넌트를 테마 컨텍스트로 감싸기
 const AppContent: React.FC = () => {
   const { searchMode, setSearchMode } = useTheme();
-  const [currentPage, setCurrentPage] = useState<'home' | 'visualization' | 'library'>('home');
+  const { isAuthenticated, currentUser, login, register, logout, verifyEmail, resendVerification, isLoading: authLoading } = useAuth();
+  const [currentPage, setCurrentPage] = useState<'home' | 'visualization' | 'library' | 'login' | 'register' | 'verify-email' | 'verification-pending'>('home');
   const [isLoading, setIsLoading] = useState(false);
+  const [pendingVerificationEmail, setPendingVerificationEmail] = useState<string>('');
+  const [verificationToken, setVerificationToken] = useState<string>('');
   const [libraryPapers, setLibraryPapers] = useState<LibraryPaper[]>([]);
   const [visualizationState, setVisualizationState] = useState<VisualizationState>({
     currentViewIndex: 0,
@@ -27,11 +36,86 @@ const AppContent: React.FC = () => {
 
   // 라이브러리 데이터 로드
   useEffect(() => {
-    setLibraryPapers(LibraryService.getLibraryPapers());
+    if (isAuthenticated) {
+      setLibraryPapers(LibraryService.getLibraryPapers());
+    }
+  }, [isAuthenticated]);
+
+  // 인증 래퍼 함수
+  const requireAuth = (callback: Function) => {
+    return (...args: any[]) => {
+      if (!isAuthenticated) {
+        alert('로그인이 필요한 기능입니다.');
+        setCurrentPage('login');
+        return;
+      }
+      return callback(...args);
+    };
+  };
+
+
+  useEffect(() => {
+    if (!isAuthenticated && 
+        currentPage !== 'login' && 
+        currentPage !== 'register' && 
+        currentPage !== 'verify-email' && 
+        currentPage !== 'verification-pending') {
+      setCurrentPage('login');
+    }
+  }, [isAuthenticated, currentPage]);
+
+  // URL에서 이메일 인증 토큰 확인
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const token = urlParams.get('token');
+    
+    if (token) {
+      setVerificationToken(token);
+      setCurrentPage('verify-email');
+    }
   }, []);
 
+  // 로그인 처리
+  const handleLogin = async (email: string, password: string) => {
+    await login(email, password);
+    setCurrentPage('home');
+  };
+
+  // 회원가입 처리
+  const handleRegister = async (email: string, password: string, name: string) => {
+    await register(email, password, name);
+    // RegisterForm에서 verification-pending 페이지로 이동
+  };
+
+  // 🆕 이메일 인증 대기 페이지로 이동
+  const handleNavigateToVerificationPending = (email: string) => {
+    setPendingVerificationEmail(email);
+    setCurrentPage('verification-pending');
+  };
+
+  // 🆕 이메일 인증 처리
+  const handleVerifyEmail = async (token: string) => {
+    await verifyEmail(token);
+  };
+
+  // 🆕 인증 이메일 재발송
+  const handleResendVerification = async (email: string) => {
+    await resendVerification(email);
+  };
+
+  // 로그아웃 처리
+  const handleLogout = () => {
+    logout();
+    setCurrentPage('login');
+    setVisualizationState({
+      currentViewIndex: 0,
+      views: [],
+      maxViews: 20
+    });
+  };
+
   // 검색 실행
-  const handleSearch = async (query: string, mode: SearchMode, selectedSeedPaper?: string) => {
+  const handleSearch = requireAuth(async (query: string, mode: SearchMode, selectedSeedPaper?: string) => {
     setIsLoading(true);
     
     try {
@@ -81,10 +165,10 @@ const AppContent: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  });
 
   // 노드 클릭 처리
-  const handleNodeClick = async (nodeId: string) => {
+  const handleNodeClick = requireAuth(async (nodeId: string) => {
     setIsLoading(true);
     
     try {
@@ -163,7 +247,7 @@ const AppContent: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  });
 
   // 브레드크럼 네비게이션 (브레드크럼 인덱스 → 뷰 인덱스 변환)
   const handleBreadcrumbNavigation = (breadcrumbIndex: number) => {
@@ -210,6 +294,56 @@ const AppContent: React.FC = () => {
 
   // 현재 페이지 렌더링
   const renderCurrentPage = () => {
+    if (currentPage === 'login') {
+      return (
+        <LoginPage
+          onLogin={handleLogin}
+          onNavigateToRegister={() => setCurrentPage('register')}
+          isLoading={authLoading}
+        />
+      );
+    }
+    
+    if (currentPage === 'register') {
+      return (
+        <RegisterPage
+          onRegister={handleRegister}
+          onNavigateToLogin={() => setCurrentPage('login')}
+          onNavigateToVerificationPending={handleNavigateToVerificationPending}
+          isLoading={authLoading}
+        />
+      );
+    }
+
+    // 🆕 이메일 인증 대기 페이지
+    if (currentPage === 'verification-pending') {
+      return (
+        <EmailVerificationPendingPage
+          email={pendingVerificationEmail}
+          onResendEmail={handleResendVerification}
+          onNavigateToLogin={() => setCurrentPage('login')}
+          isLoading={authLoading}
+        />
+      );
+    }
+
+    // 🆕 이메일 인증 페이지
+    if (currentPage === 'verify-email') {
+      return (
+        <EmailVerificationPage
+          token={verificationToken}
+          onVerify={handleVerifyEmail}
+          onNavigateToLogin={() => setCurrentPage('login')}
+          isLoading={authLoading}
+        />
+      );
+    }
+
+    // 인증된 사용자만 접근 가능한 페이지들
+    if (!isAuthenticated) {
+      return null;
+    }
+    
     if (currentPage === 'home') {
       return (
         <HomePage
@@ -241,24 +375,38 @@ const AppContent: React.FC = () => {
     );
   };
 
+  // 로그인/회원가입/이메일 인증 페이지는 레이아웃 없이 표시
+  if (currentPage === 'login' || 
+      currentPage === 'register' || 
+      currentPage === 'verify-email' || 
+      currentPage === 'verification-pending') {
+    return renderCurrentPage();
+  }
+
   return (
     <MainLayout
       visualizationState={visualizationState}
       onNavigateToView={handleBreadcrumbNavigation}
       onOpenLibrary={handleOpenLibrary}
+      onLogout={handleLogout}
       showSidebar={currentPage === 'visualization'}
+      isAuthenticated={isAuthenticated}  
+      currentUser={currentUser}          
+      onLogin={() => setCurrentPage('login')} 
     >
       {renderCurrentPage()}
     </MainLayout>
   );
-};
+}
 
 // 메인 App 컴포넌트
 function App() {
   return (
-    <ThemeProvider initialMode="external">
-      <AppContent />
-    </ThemeProvider>
+    <AuthProvider>
+      <ThemeProvider initialMode="external">
+        <AppContent />
+      </ThemeProvider>
+    </AuthProvider>
   );
 }
 

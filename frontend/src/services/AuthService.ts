@@ -1,91 +1,133 @@
-import type { LoginRequest, SignupRequest, AuthResponse } from '../types/auth';
+import type { RegisterRequest, AuthResponse, User } from '../types/auth';
 
-class AuthService {
-    private baseUrl: string;
+const API_BASE_URL = 'http://localhost:8000';
 
-    constructor(baseUrl: string = '/api') {
-        this.baseUrl = baseUrl;
+export class AuthService {
+  private static TOKEN_KEY = 'auth_token';
+
+  // ë¡œê·¸ì¸
+  static async login(email: string, password: string): Promise<AuthResponse> {
+    const createFormUrlEncoded = (data: any) => {
+      return Object.keys(data)
+        .map(key => encodeURIComponent(key) + '=' + encodeURIComponent(data[key]))
+        .join('&');
+    };
+    
+    const loginData = {
+      username: email,
+      password: password,
+    };
+
+    const formBody = createFormUrlEncoded(loginData);
+    const response = await fetch(`${API_BASE_URL}/users/login`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: formBody,
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || 'ë¡œê·¸ì¸ì— ì‹¤íŒ¨í–ˆìŠµë‹ˆë‹¤.');
     }
 
-    // ·Î±×ÀÎ ¸Ş¼­µå
-    async login(credentials: LoginRequest): Promise<AuthResponse> {
-        try {
-            const response = await fetch(`${this.baseUrl}/login`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(credentials)
-            });
+    return await response.json();
+  }
 
-            if (!response.ok) {
-                const error = await response.json();
-                throw new Error(error.message || '·Î±×ÀÎ¿¡ ½ÇÆĞÇß½À´Ï´Ù.');
-            }
+  
 
-            return await response.json();
-        } catch (error) {
-            console.error('Login error:', error);
-            throw error;
-        }
+  // íšŒì›ê°€ì…
+  static async register(Email: string, Password: string, Name: string): Promise<void> {
+    const response = await fetch(`${API_BASE_URL}/users/register`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ Email, Name, Password } as RegisterRequest),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || 'íšŒì›ê°€ì…ì— ì‹¤íŒ¨í–ˆìŠµë‹ˆë‹¤.');
     }
 
-    // È¸¿ø°¡ÀÔ ¸Ş¼­µå
-    async signup(userData: SignupRequest): Promise<AuthResponse> {
-        try {
-            const response = await fetch(`${this.baseUrl}/signup`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(userData)
-            });
+    return await response.json();
+  }
 
-            if (!response.ok) {
-                const error = await response.json();
-                throw new Error(error.message || 'È¸¿ø°¡ÀÔ¿¡ ½ÇÆĞÇß½À´Ï´Ù.');
-            }
+  // í† í° ê²€ì¦
+  static async verifyToken(token: string): Promise<User> {
+    const response = await fetch(`${API_BASE_URL}/users/verify`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
 
-            return await response.json();
-        } catch (error) {
-            console.error('Signup error:', error);
-            throw error;
-        }
+    if (!response.ok) {
+      throw new Error('í† í°ì´ ìœ íš¨í•˜ì§€ ì•ŠìŠµë‹ˆë‹¤.');
     }
 
-    // ·Î±×¾Æ¿ô ¸Ş¼­µå
-    async logout(): Promise<void> {
-        try {
-            await fetch(`${this.baseUrl}/logout`, {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${this.getToken()}`
-                }
-            });
-        } finally {
-            this.clearToken();
-        }
-    }
+    const data = await response.json();
+    return data.user;
+  }
 
-    // ÅäÅ« ÀúÀå
-    saveToken(token: string): void {
-        localStorage.setItem('auth_token', token);
-    }
+  // í† í° ì €ì¥
+  static setToken(token: string): void {
+    localStorage.setItem(this.TOKEN_KEY, token);
+  }
 
-    // ÅäÅ« °¡Á®¿À±â
-    getToken(): string | null {
-        return localStorage.getItem('auth_token');
-    }
+  // í† í° ê°€ì ¸ì˜¤ê¸°
+  static getToken(): string | null {
+    return localStorage.getItem(this.TOKEN_KEY);
+  }
 
-    // ÅäÅ« »èÁ¦
-    clearToken(): void {
-        localStorage.removeItem('auth_token');
-    }
+  // í† í° ì‚­ì œ (ë¡œê·¸ì•„ì›ƒ)
+  static logout(): void {
+    localStorage.removeItem(this.TOKEN_KEY);
+  }
 
-    // ÀÎÁõ »óÅÂ È®ÀÎ
-    isAuthenticated(): boolean {
-        return !!this.getToken();
-    }
+  static async verifyEmail(token: string): Promise<void> {
+  // GET ìš”ì²­ì€ query parameterë¡œ í† í° ì „ë‹¬
+  const response = await fetch(`${API_BASE_URL}/users/verify-email?token=${token}`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.detail || 'ì´ë©”ì¼ ì¸ì¦ì— ì‹¤íŒ¨í–ˆìŠµë‹ˆë‹¤.');
+  }
+
+  return await response.json();
 }
 
-// ½Ì±ÛÅæ ÀÎ½ºÅÏ½º export
-export const authService = new AuthService();
+  // ğŸ†• ì¸ì¦ ì´ë©”ì¼ ì¬ë°œì†¡
+  static async resendVerification(email: string): Promise<void> {
+    const response = await fetch(`${API_BASE_URL}/users/resend-verification-email`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ email }),
+    });
 
-// Å¬·¡½ºµµ export (Å×½ºÆ®³ª Ä¿½ºÅÒ ÀÎ½ºÅÏ½º¿ë)
-export default AuthService;
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || 'ì¸ì¦ ì´ë©”ì¼ ì¬ë°œì†¡ì— ì‹¤íŒ¨í–ˆìŠµë‹ˆë‹¤.');
+    }
+
+    return await response.json();
+  }
+
+  // ì¸ì¦ëœ ìš”ì²­ì„ ìœ„í•œ í—¤ë” ìƒì„±
+  static getAuthHeaders(): HeadersInit {
+    const token = this.getToken();
+    return {
+      'Content-Type': 'application/json',
+      ...(token && { 'Authorization': `Bearer ${token}` }),
+    };
+  }
+}

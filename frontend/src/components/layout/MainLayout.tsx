@@ -2,6 +2,7 @@ import React from 'react';
 import Header from './Header';
 import Sidebar from './Sidebar';
 import type { VisualizationState } from '../../types/visualization';
+import type { User } from '../../types/auth';
 
 interface MainLayoutProps {
   children: React.ReactNode;
@@ -9,6 +10,10 @@ interface MainLayoutProps {
   onNavigateToView?: (viewIndex: number) => void;
   onOpenLibrary?: () => void;
   showSidebar?: boolean;
+  isAuthenticated?: boolean;
+  currentUser?: User | null;
+  onLogin?: () => void;
+  onLogout?: () => void;
 }
 
 const MainLayout: React.FC<MainLayoutProps> = ({
@@ -16,7 +21,11 @@ const MainLayout: React.FC<MainLayoutProps> = ({
   visualizationState,
   onNavigateToView,
   onOpenLibrary,
-  showSidebar = false
+  showSidebar = false,
+  isAuthenticated = false,
+  currentUser = null,
+  onLogin,
+  onLogout
 }) => {
   return (
     <div className="min-h-screen bg-gray-50">
@@ -24,6 +33,10 @@ const MainLayout: React.FC<MainLayoutProps> = ({
         visualizationState={visualizationState}
         onNavigateToView={onNavigateToView}
         onOpenLibrary={onOpenLibrary}
+        isAuthenticated={isAuthenticated}
+        currentUser={currentUser}
+        onLogin={onLogin}
+        onLogout={onLogout}
       />
       <div className={`${showSidebar ? 'flex' : ''} h-screen pt-16`}>
         {showSidebar && <Sidebar />}

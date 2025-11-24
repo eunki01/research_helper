@@ -1,143 +1,37 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
-import AuthInput from '../components/auth/AuthInput';
-import AuthButton from '../components/auth/AuthButton';
+// pages/LoginPage.tsx
+
+import React from 'react';
+import { LoginForm } from '../components/auth/LoginForm';
 
 interface LoginPageProps {
-    onLogin: (email: string, password: string) => Promise<void>;
+  onLogin: (email: string, password: string) => Promise<void>;
+  onNavigateToRegister: () => void;
+  isLoading: boolean;
 }
 
-const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
-    const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
-    const [isLoading, setIsLoading] = useState(false);
-
-    const validateForm = () => {
-        const newErrors: { email?: string; password?: string } = {};
-
-        if (!email) {
-            newErrors.email = '¿Ã∏ﬁ¿œ¿ª ¿‘∑¬«ÿ¡÷ººø‰.';
-        } else if (!/\S+@\S+\.\S+/.test(email)) {
-            newErrors.email = 'ø√πŸ∏• ¿Ã∏ﬁ¿œ «¸Ωƒ¿Ã æ∆¥’¥œ¥Ÿ.';
-        }
-
-        if (!password) {
-            newErrors.password = '∫Òπ–π¯»£∏¶ ¿‘∑¬«ÿ¡÷ººø‰.';
-        }
-
-        setErrors(newErrors);
-        return Object.keys(newErrors).length === 0;
-    };
-
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-
-        if (!validateForm()) return;
-
-        setIsLoading(true);
-        try {
-            await onLogin(email, password);
-        } catch (error) {
-            setErrors({ password: '∑Œ±◊¿Œø° Ω«∆–«ﬂΩ¿¥œ¥Ÿ.' });
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
-    return (
-        <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center px-4">
-            {/* «Ï¥ı */}
-            <div className="text-center mb-8">
-                <h1 className="text-3xl font-bold text-gray-900 mb-2">
-                    Research Navigator
-                </h1>
-                <p className="text-gray-600">
-                    ∑Œ±◊¿Œ«œ∞Ì ≥ÌπÆ ≈Ωªˆ¿ª Ω√¿€«œººø‰
-                </p>
-            </div>
-
-            {/* ∑Œ±◊¿Œ ∆˚ */}
-            <div className="w-full max-w-md bg-white rounded-lg shadow-sm border border-gray-200 p-8">
-                <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">
-                    ∑Œ±◊¿Œ
-                </h2>
-
-                <form onSubmit={handleSubmit}>
-                    <AuthInput
-                        label="¿Ã∏ﬁ¿œ"
-                        type="email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        placeholder="example@email.com"
-                        required
-                        error={errors.email}
-                    />
-
-                    <AuthInput
-                        label="∫Òπ–π¯»£"
-                        type="password"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        placeholder="∫Òπ–π¯»£∏¶ ¿‘∑¬«œººø‰"
-                        required
-                        error={errors.password}
-                    />
-
-                    <div className="flex items-center justify-between mb-6">
-                        <label className="flex items-center">
-                            <input
-                                type="checkbox"
-                                className="w-4 h-4 text-blue-500 border-gray-300 rounded focus:ring-blue-500"
-                            />
-                            <span className="ml-2 text-sm text-gray-600">∑Œ±◊¿Œ ªÛ≈¬ ¿Ø¡ˆ</span>
-                        </label>
-                        <a href="#" className="text-sm text-blue-500 hover:text-blue-600">
-                            ∫Òπ–π¯»£ √£±‚
-                        </a>
-                    </div>
-
-                    <AuthButton
-                        text="∑Œ±◊¿Œ"
-                        type="submit"
-                        isLoading={isLoading}
-                        variant="primary"
-                    />
-                </form>
-
-                {/* »∏ø¯∞°¿‘ ∏µ≈© */}
-                <div className="mt-6 text-center">
-                    <p className="text-sm text-gray-600">
-                        ∞Ë¡§¿Ã æ¯¿∏Ω≈∞°ø‰?{' '}
-                        <Link to="/signup" className="text-blue-500 hover:text-blue-600 font-medium">
-                            »∏ø¯∞°¿‘
-                        </Link>
-                    </p>
-                </div>
-
-                {/* º“º» ∑Œ±◊¿Œ (º±≈√ªÁ«◊) */}
-                <div className="mt-6">
-                    <div className="relative">
-                        <div className="absolute inset-0 flex items-center">
-                            <div className="w-full border-t border-gray-300"></div>
-                        </div>
-                        <div className="relative flex justify-center text-sm">
-                            <span className="px-2 bg-white text-gray-500">∂«¥¬</span>
-                        </div>
-                    </div>
-
-                    <div className="mt-6 grid grid-cols-2 gap-3">
-                        <button className="w-full py-2 px-4 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors flex items-center justify-center">
-                            <span className="text-sm font-medium text-gray-700">Google</span>
-                        </button>
-                        <button className="w-full py-2 px-4 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors flex items-center justify-center">
-                            <span className="text-sm font-medium text-gray-700">GitHub</span>
-                        </button>
-                    </div>
-                </div>
-            </div>
+export const LoginPage: React.FC<LoginPageProps> = ({
+  onLogin,
+  onNavigateToRegister,
+  isLoading
+}) => {
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 px-4">
+      <div className="w-full max-w-md">
+        <div className="text-center mb-8">
+          <h1 className="text-4xl font-bold text-gray-800 mb-2">
+            Research Paper Manager
+          </h1>
+          <p className="text-gray-600">
+            ÎÖºÎ¨∏ Í≤ÄÏÉâ Î∞è Í¥ÄÎ¶¨ ÏãúÏä§ÌÖú
+          </p>
         </div>
-    );
+        
+        <LoginForm
+          onLogin={onLogin}
+          onNavigateToRegister={onNavigateToRegister}
+          isLoading={isLoading}
+        />
+      </div>
+    </div>
+  );
 };
-
-export default LoginPage;

@@ -1,66 +1,120 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { authService } from '../services/AuthService';
-import type { User } from '../types/auth';
+// context/AuthContext.tsx
 
-interface AuthContextType {
-  user: User | null;
-  isAuthenticated: boolean;
-  isLoading: boolean;
-  login: (email: string, password: string) => Promise<void>;
-  signup: (name: string, email: string, password: string) => Promise<void>;
-  logout: () => Promise<void>;
-}
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import type { ReactNode } from 'react';
+import type { User, AuthContextType } from '../types/auth';
+import { AuthService } from '../services/authService';
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+interface AuthProviderProps {
+  children: ReactNode;
+}
 
-  // æ€ Ω√¿€ Ω√ ¿Œ¡ı ªÛ≈¬ »Æ¿Œ
+export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+
+  // Ïï± ÏãúÏûëÏãú Î°úÍ∑∏Ïù∏ ÏÉÅÌÉú ÌôïÏù∏
   useEffect(() => {
     const checkAuth = async () => {
-      if (authService.isAuthenticated()) {
-        // ≈‰≈´¿Ã ¿÷¿∏∏È ªÁøÎ¿⁄ ¡§∫∏ ∞°¡Æø¿±‚
+      const token = AuthService.getToken();
+      
+      if (token) {
         try {
-          // const userData = await authService.getCurrentUser();
-          // setUser(userData);
+          const user = await AuthService.verifyToken(token);
+          setIsAuthenticated(true);
+          setCurrentUser(user);
         } catch (error) {
-          authService.clearToken();
+          console.error('Token verification failed:', error);
+          AuthService.logout();
+          setIsAuthenticated(false);
+          setCurrentUser(null);
         }
       }
-      setIsLoading(false);
     };
-
+    
     checkAuth();
   }, []);
 
   const login = async (email: string, password: string) => {
-    const response = await authService.login({ email, password });
-    authService.saveToken(response.token);
-    setUser(response.user);
+    setIsLoading(true);
+    
+    try {
+      const response = await AuthService.login(email, password);
+      
+      AuthService.setToken(response.token);
+      setIsAuthenticated(true);
+      setCurrentUser(response.user);
+    } catch (error) {
+      console.error('Login failed:', error);
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const signup = async (name: string, email: string, password: string) => {
-    const response = await authService.signup({ name, email, password });
-    authService.saveToken(response.token);
-    setUser(response.user);
+  const register = async (email: string, password: string, name: string) => {
+    setIsLoading(true);
+    
+    try {
+      await AuthService.register(email, password, name);
+    } catch (error) {
+      console.error('Registration failed:', error);
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const logout = async () => {
-    await authService.logout();
-    setUser(null);
+  const logout = () => {
+    AuthService.logout();
+    setIsAuthenticated(false);
+    setCurrentUser(null);
+  };
+
+  const verifyEmail = async (token: string) => {
+    console.log('=== verifyEmail Ìò∏Ï∂úÎê® ===');
+    console.log('Î∞õÏùÄ ÌÜ†ÌÅ∞:', token);
+    setIsLoading(true);
+    
+    try {
+      console.log('AuthService.verifyEmail Ìò∏Ï∂ú ÏãúÏûë');
+      await AuthService.verifyEmail(token);
+      console.log('AuthService.verifyEmail Ìò∏Ï∂ú ÏÑ±Í≥µ');
+    } catch (error) {
+      console.error('Email verification failed:', error);
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const resendVerification = async (email: string) => {
+    setIsLoading(true);
+    
+    try {
+      await AuthService.resendVerification(email);
+    } catch (error) {
+      console.error('Resend verification failed:', error);
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
     <AuthContext.Provider
       value={{
-        user,
-        isAuthenticated: !!user,
-        isLoading,
+        isAuthenticated,
+        currentUser,
         login,
-        signup,
-        logout
+        register,
+        logout,
+        verifyEmail,
+        resendVerification,
+        isLoading
       }}
     >
       {children}
@@ -68,7 +122,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   );
 };
 
-// Custom Hook
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (context === undefined) {
