@@ -86,7 +86,7 @@ class LLMService:
         Use the following context to answer the user's question.
         If the context doesn't contain the answer, use your knowledge but prioritize the context.
         
-        답변은 한국어로 작성해주세요.
+        답변은 Markdown 형식의 한국어로 작성해주세요.
         Context:
         {context}
         """
