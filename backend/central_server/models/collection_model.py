@@ -11,8 +11,8 @@ class Collection(Base):
     UserId: Mapped[int] = mapped_column(ForeignKey('user.UserId'))
     CollectionName: Mapped[str] = mapped_column(String(255))
     Description: Mapped[Optional[str]] = mapped_column(Text)
-    CreatedAt: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
-    UpdatedAt: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    CreatedAt: Mapped[datetime] = mapped_column(DateTime, nullable=True, default=datetime.now)
+    UpdatedAt: Mapped[datetime] = mapped_column(DateTime, nullable=True, default=datetime.now)
 
     user: Mapped["User"] = relationship(back_populates="collections")
     collection_papers: Mapped[List["CollectionPaper"]] = relationship(back_populates="collection")

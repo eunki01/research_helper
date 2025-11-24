@@ -36,7 +36,7 @@ def create_token(data: dict, expires_delta: Optional[timedelta] = None, token_ty
   encoded_jwt = jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
   return encoded_jwt
 
-def create_access_token_and_refresh_token(user_id: str) -> Dict[str, str]:
+async def create_access_token_and_refresh_token(user_id: str) -> Dict[str, str]:
   jti = str(uuid.uuid4())
   
   user_id_str = str(user_id)
@@ -44,8 +44,8 @@ def create_access_token_and_refresh_token(user_id: str) -> Dict[str, str]:
   access_token = create_token(data={"sub":user_id_str}, token_type="access")
   
   refresh_token = create_token(data={"sub":user_id_str, "jti": jti}, token_type="refresh")
-  
-  save_refresh_token_jti(jti=jti, user_id=user_id_str)
+  print(jti, user_id_str)
+  await save_refresh_token_jti(jti=jti, user_id=user_id_str)
   
   return {
     "access_token": access_token,
@@ -56,7 +56,7 @@ def create_access_token_and_refresh_token(user_id: str) -> Dict[str, str]:
 def verify_token(token: str):
   print(f"{token} {settings.SECRET_KEY} {settings.ALGORITHM}")
   try:
-    payload =  jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+    payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
     print(payload)
     return payload
   except ExpiredSignatureError:
@@ -95,32 +95,36 @@ def verify_token(token: str):
           detail="Internal server error during authentication.",
       )
 
-async def save_refresh_token_jti(jti: str, user_id: str, client: Redis=Depends(get_redis_client)):
+async def save_refresh_token_jti(jti: str, user_id: str):
     key = f"{{ {JTI_PREFIX}{jti} }}"
-    ttl_seconds = timedelta(minutes=settings.REFRESH_TOKEN_EXPIRE_MINUTES).total_seconds()
-    await client.setex(key, ttl_seconds, user_id)
+    ttl_seconds = timedelta(minutes=int(settings.REFRESH_TOKEN_EXPIRE_MINUTES)).total_seconds()
+    client = await get_redis_client()
+    await client.setex(key, int(ttl_seconds), user_id)
     return True
   
-async def is_jti_exists(jti: str, client: Redis=Depends(get_redis_client)):
+async def is_jti_exists(jti: str, client: Redis):
   key = f"{JTI_PREFIX}{jti}"
-  return client.exists(key)
+  return await client.exists(key)
 
-async def revoke_refresh_token(jti: str, client: Redis=Depends(get_redis_client)):
+async def revoke_refresh_token(jti: str, client: Redis):
   key = f"{JTI_PREFIX}{jti}"
-  return client.delete(key)
+  return await client.delete(key)
 
-async def generate_verification_code(email: str) -> str:
-  code = ''.join(random.choices(string.digits, k=6))
+async def generate_verification_token(email: str) -> str:
+  token = create_token({"email":email}, token_type="access")
   
-  await get_redis_client().setex(f"verification:{email}", 300, code)
-  return code
+  db = await get_redis_client()
+  await db.setex(f"verification:{email}", 300, token)
+  return token
 
-async def verify_code(email: str, code: str) -> bool:
+async def verify_verification_token(token: str) -> str:
   redis_client = await get_redis_client()
+  payload = verify_token(token)
+  print(payload)
+  email = payload.get("email")
   stored_code = await redis_client.get(f"verification:{email}")
-  if stored_code and stored_code.decode() == code:
+  if stored_code:
     await redis_client.delete(f"verification:{email}")
     await redis_client.set(f"verified:{email}", "true", ex=3600)
-    return True
-  return False
-  
+    return email
+  return None
