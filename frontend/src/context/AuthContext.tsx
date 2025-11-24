@@ -3,7 +3,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import type { ReactNode } from 'react';
 import type { User, AuthContextType } from '../types/auth';
-import { AuthService } from '../services/authService';
+import { AuthService } from '../services/AuthService';
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
