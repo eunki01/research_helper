@@ -41,6 +41,11 @@ class SearchRequest(BaseModel):
     similarity_threshold: float = Field(0.7, description="유사도 점수 임계값 (0.0 ~ 1.0)")
     target_titles: Optional[List[str]] = None
 
+class DocumentSearchRequest(BaseModel):
+    doc_id: str
+    limit: Optional[int] = 5
+    similarity_threshold: Optional[float] = 0.7
+
 class UpdateDocumentRequest(BaseModel):
     title: Optional[str] = None
     authors: Optional[str] = None

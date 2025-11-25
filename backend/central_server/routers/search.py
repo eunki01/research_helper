@@ -4,7 +4,7 @@ import logging
 from typing import List, Dict, Any
 
 from core.config import settings
-from schemas.search import InternalSearchRequest, InternalSearchResponse, ExternalSearchRequest, ExternalSearchResponse
+from schemas.search import InternalSearchRequest, InternalSearchResponse, ExternalSearchRequest, ExternalSearchResponse, DocumentSearchRequest
 from services.query_service import QueryService, get_query_service
 from core.database import get_db
 
@@ -52,3 +52,21 @@ async def search_external_data(
     except Exception as e:
         logger.error(f"외부 검색 처리 중 오류 발생: {str(e)}")
         raise HTTPException(status_code=500, detail="외부 검색 처리 중 오류가 발생했습니다.")
+    
+@router.post("/similarity", response_model=InternalSearchResponse)
+async def search_by_document(
+    request: DocumentSearchRequest,
+    query_service: QueryService = Depends(get_query_service)
+):
+    """
+    특정 문서 ID를 기반으로 내부 문서를 검색합니다. (벡터 기반 유사도 검색)
+    """
+    try:
+        logger.info(f"문서 기반 검색 요청 수신: ID={request.doc_id}")
+        response = await query_service.process_document_search(request)
+        return response
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"문서 기반 검색 처리 중 오류 발생: {str(e)}")
+        raise HTTPException(status_code=500, detail="문서 기반 검색 처리 중 오류가 발생했습니다.")

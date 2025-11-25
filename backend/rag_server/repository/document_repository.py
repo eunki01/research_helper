@@ -1,5 +1,5 @@
 # repository/document_repository.py
-from typing import List, Optional, Dict, Any
+from typing import List, Optional, Dict, Tuple, Any
 import logging
 from weaviate.classes.query import Filter, MetadataQuery
 from models.schemas import SimilarityResult
@@ -58,13 +58,32 @@ class DocumentRepository:
             logger.error(f"Failed to store processed data for document '{doc_title}': {str(e)}", exc_info=True)
             raise RuntimeError(f"Database storage failed for {doc_title}") from e
 
+    def get_vector_and_title_by_id(self, doc_id: str) -> Optional[Tuple[List[float], str]]:
+        try:
+            collection = self.db_manager.get_collection()
+            # include_vector=True로 벡터 데이터까지 함께 조회
+            obj = collection.query.fetch_object_by_id(
+                doc_id, 
+                include_vector=True,
+                return_properties=["title"]
+            )
+            if obj and obj.vector:
+                vector = obj.vector.get("default")
+                title = obj.properties.get("title", "")
+                return vector, title
+            return None
+        except Exception as e:
+            logger.error(f"Failed to fetch vector for doc {doc_id}: {e}")
+            return None
+
     def search_by_vector(
         self, 
         query_vector: List[float], 
         limit: int = None, 
         distance_threshold: float = None,
         target_titles: Optional[List[str]] = None,
-        text_query: str = None # [추가] 텍스트 검색어 (Hybrid Search용)
+        exclude_titles: Optional[List[str]] = None, # [추가] 제외할 제목 목록
+        text_query: str = None # 텍스트 검색어 (Hybrid Search용)
     ) -> List[SimilarityResult]:
         if limit is None: limit = settings.DEFAULT_SEARCH_LIMIT
         
@@ -78,6 +97,17 @@ class DocumentRepository:
             search_filter = None
             if target_titles and len(target_titles) > 0:
                 search_filter = Filter.by_property("title").contains_any(target_titles)
+
+            if exclude_titles and len(exclude_titles) > 0:
+                if len(exclude_titles) == 1:
+                    exclude_filter = Filter.by_property("title").not_equal(exclude_titles[0])
+                else:
+                    exclude_filter = ~Filter.by_property("title").contains_any(exclude_titles)
+                
+                if search_filter:
+                    search_filter = search_filter & exclude_filter
+                else:
+                    search_filter = exclude_filter
 
             # 2. 검색 실행 (Hybrid or Near Vector)
             if text_query:
@@ -137,8 +167,6 @@ class DocumentRepository:
         except Exception as e:
             logger.error(f"Search failed: {str(e)}", exc_info=True)
             raise RuntimeError("Database search failed") from e
-
-    # [삭제됨] search_by_title, search_by_authors 제거
 
     def get_all_documents(self, limit: Optional[int] = 100) -> List[SimilarityResult]:
         try:

@@ -13,6 +13,11 @@ class ExternalSearchRequest(BaseModel):
     query_text: str = Field(..., description="사용자의 검색 질문 또는 쿼리")
     limit: int = Field(5, description="반환받을 최대 논문 수")
 
+class DocumentSearchRequest(BaseModel):
+    """문서 ID를 기준으로 유사한 문서를 검색하기 위한 요청 모델"""
+    doc_id: str = Field(..., description="기준이 되는 문서(청크)의 ID")
+    limit: int = Field(5, description="반환받을 최대 문서 수")
+
 class SimilarityLink(BaseModel):
     """두 문서 간의 유사도 관계(그래프의 엣지)를 나타내는 모델"""
     source: str = Field(..., description="소스 노드의 문서 ID")

@@ -5,7 +5,7 @@ from typing import List, Dict, Any, AsyncGenerator
 from fastapi import HTTPException, Depends
 from collections import defaultdict
 from schemas.search import (
-    InternalSearchRequest, ExternalSearchRequest,
+    InternalSearchRequest, ExternalSearchRequest, DocumentSearchRequest,
     InternalSearchResponse, InternalDocumentReference, ChunkReference,
     ExternalSearchResponse, ExternalReference,
     SimilarityLink
@@ -97,6 +97,71 @@ class QueryService:
             raise HTTPException(status_code=e.response.status_code, detail=f"내부 서버 오류: {e.response.text}")
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"내부 검색 처리 중 오류 발생: {str(e)}")
+
+    async def process_document_search(self, request: DocumentSearchRequest) -> InternalSearchResponse:
+        try:
+            # 1. RAG 서버로 요청 전달 (/search/similarity)
+            response = await self.http_client.post(
+                f"{settings.LOCAL_BACKEND_SERVER_URL}/search/similarity",
+                json=request.model_dump()
+            )
+            response.raise_for_status()
+            search_results = response.json()
+            
+            # 2. 결과 가공 (InternalSearchResponse 형태로 변환)
+            grouped_references = defaultdict(lambda: {"chunks": [], "meta": {}})
+            
+            for doc_chunk in search_results:
+                doc_id = doc_chunk.get('doi') or doc_chunk.get('id')
+                if not doc_id: continue
+
+                chunk_ref = ChunkReference(
+                    chunk_content=doc_chunk.get('content'),
+                    chunk_index=doc_chunk.get('chunk_index'),
+                    similarity_score=doc_chunk.get('similarity_score')
+                )
+                grouped_references[doc_id]["chunks"].append(chunk_ref)
+
+                if not grouped_references[doc_id]["meta"]:
+                    publication_date = doc_chunk.get('published')
+                    authors = []
+                    if author_str := doc_chunk.get('authors'):
+                        authors = [name.strip() for name in author_str.split(',')]
+                    
+                    grouped_references[doc_id]["meta"] = {
+                        "title": doc_chunk.get('title'),
+                        "authors": authors,
+                        "publication_date": publication_date
+                    }
+
+            references = []
+            for doc_id, data in grouped_references.items():
+                references.append(
+                    InternalDocumentReference(
+                        paperId=doc_id,
+                        title=data["meta"]["title"],
+                        authors=data["meta"]["authors"],
+                        publicationDate=data["meta"]["publication_date"],
+                        chunks=sorted(data["chunks"], key=lambda c: c.chunk_index)
+                    )
+                )
+            
+            # 3. 유사도 그래프 계산
+            papers_for_similarity = [{"paperId": ref.paperId, "embedding": doc.get("vector")} for ref, doc in zip(references, search_results) if doc.get("vector")]
+            similarity_graph_data = self.similarity_service.calculate_similarity_graph(papers_for_similarity)
+            similarity_graph = [SimilarityLink(**link) for link in similarity_graph_data]
+            
+            return InternalSearchResponse(
+                query=f"File ID: {request.doc_id}", # 텍스트 쿼리가 없으므로 파일 ID 표시
+                answer=None,
+                references=references,
+                similarity_graph=similarity_graph
+            )
+
+        except httpx.HTTPStatusError as e:
+            raise HTTPException(status_code=e.response.status_code, detail=f"RAG 서버 오류: {e.response.text}")
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"문서 기반 검색 처리 중 오류 발생: {str(e)}")
 
     async def process_external_search(self, request: ExternalSearchRequest) -> ExternalSearchResponse:
         """

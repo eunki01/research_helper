@@ -103,7 +103,7 @@ class DocumentService:
 
             distance_threshold_value = (1.0 - similarity_threshold) if similarity_threshold is not None else None
 
-            # [수정] text_query 파라미터 전달 (Hybrid Search 활성화)
+            # text_query 파라미터 전달 (Hybrid Search 활성화)
             return self.repository.search_by_vector(
                 query_vector=query_vector,
                 limit=limit,
@@ -114,6 +114,65 @@ class DocumentService:
         except Exception as e:
             logger.error(f"Unexpected error during text search: {e}", exc_info=True)
             raise HTTPException(status_code=500, detail="Unexpected internal error during search")
+
+    def search_by_document_id(
+        self, 
+        doc_id: str, 
+        limit: Optional[int] = 5,
+        similarity_threshold: Optional[float] = None
+    ) -> List[SimilarityResult]:
+        logger.info(f"Performing document similarity search for ID: {doc_id}")
+        
+        # 1. 대상 문서의 벡터와 제목 조회
+        result = self.repository.get_vector_and_title_by_id(doc_id)
+        
+        if not result:
+            logger.warning(f"Document with ID {doc_id} not found.")
+            raise HTTPException(status_code=404, detail="Reference document not found or has no vector.")
+        
+        query_vector, query_title = result
+        
+        logger.info(f"Reference document found: '{query_title}'. Searching for similar documents...")
+
+        distance_threshold_value = (1.0 - similarity_threshold) if similarity_threshold is not None else None
+
+        # 2. [변경] Over-fetching: 요청된 limit보다 더 많은 청크를 검색 (예: 4배)
+        # 이유: 자기 자신의 청크가 상위권을 독점하는 것을 방지하고, 다양한 문서를 확보하기 위함
+        fetch_limit = (limit or 5) * 4
+        
+        # 3. [변경] exclude_titles 제거: 자기 자신도 결과에 포함시켜야 시각화 그래프에 노드가 생성됨
+        raw_results = self.repository.search_by_vector(
+            query_vector=query_vector,
+            limit=fetch_limit, 
+            distance_threshold=distance_threshold_value,
+            exclude_titles=None # 제외 안 함
+        )
+
+        # 4. [신규] 문서 다양성 필터링 (Document Diversity Filtering)
+        # 목표: 상위 'limit'개의 *고유한 문서*를 찾고, 그 문서들에 속한 청크들을 반환
+        
+        unique_titles = [] # 순서 유지하며 고유 제목 저장
+        title_to_chunks = {} # 제목별 청크 그룹화
+
+        for res in raw_results:
+            if res.title not in title_to_chunks:
+                if len(unique_titles) < (limit or 5): # 원하는 문서 개수만큼만 문서를 수집
+                    unique_titles.append(res.title)
+                    title_to_chunks[res.title] = []
+            
+            # 이미 선정된 문서에 속한 청크라면 추가
+            if res.title in title_to_chunks:
+                title_to_chunks[res.title].append(res)
+
+        # 5. 최종 결과 구성 (선정된 문서들의 청크들을 유사도 순으로 평탄화)
+        final_results = []
+        for res in raw_results:
+            if res.title in title_to_chunks:
+                final_results.append(res)
+        
+        logger.info(f"Document search complete. Fetched {len(raw_results)} chunks, returning {len(final_results)} chunks from {len(unique_titles)} unique docs.")
+
+        return final_results
 
     def get_all_documents(self, limit: int = 100) -> List[SimilarityResult]:
         return self.repository.get_all_documents(limit=limit)

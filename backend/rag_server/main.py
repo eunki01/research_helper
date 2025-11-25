@@ -8,7 +8,7 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 
 from core.config import settings
-from models.schemas import UploadResponse, SimilarityResult, SearchRequest, UpdateDocumentRequest
+from models.schemas import UploadResponse, SimilarityResult, SearchRequest, DocumentSearchRequest, UpdateDocumentRequest
 from database.weaviate_db import db_manager_instance as db_manager, get_db_manager, WeaviateManager
 from utils.file_handler import FileHandler, get_file_handler
 from service.document_service import DocumentService, get_document_service
@@ -191,6 +191,26 @@ async def search_documents(
          raise HTTPException(status_code=400, detail=str(ve))
     except Exception as e:
         logger.error(f"Unexpected error during text search: {str(e)}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Internal error during search processing.")
+
+@app.post("/search/similarity", response_model=List[SimilarityResult])
+async def search_by_document(
+    request: DocumentSearchRequest,
+    service: DocumentService = Depends(get_document_service)
+):
+    """특정 문서를 기준으로 유사한 문서를 검색합니다."""
+    logger.info(f"Received document similarity search request for: {request.doc_id}")
+    try:
+        results = service.search_by_document_id(
+            doc_id=request.doc_id,
+            limit=request.limit,
+            similarity_threshold=request.similarity_threshold
+        )
+        return results
+    except HTTPException:
+         raise
+    except Exception as e:
+        logger.error(f"Unexpected error during document similarity search: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail="Internal error during search processing.")
 
 @app.get("/stats")
