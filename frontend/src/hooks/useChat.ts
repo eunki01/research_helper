@@ -10,7 +10,7 @@ export const useChat = () => {
   /**
    * 메시지 전송 및 스트리밍 응답 처리
    */
-  const sendMessage = useCallback(async (query: string, targetPaperIds?: string[]) => {
+  const sendMessage = useCallback(async (query: string, targetTitles?: string[]) => {
     if (!query.trim()) return;
 
     // 1. 사용자 메시지 추가
@@ -32,7 +32,7 @@ export const useChat = () => {
       // 현재 메시지 목록(history)에는 방금 추가한 userMessage가 포함되어 있지 않으므로 명시적으로 전달
       const history = [...messages, userMessage];
       
-      const stream = ApiService.chatStream(query, history, targetPaperIds);
+      const stream = ApiService.chatStream(query, history, targetTitles);
 
       let fullContent = '';
 

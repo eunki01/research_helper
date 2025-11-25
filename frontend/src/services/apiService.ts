@@ -72,6 +72,23 @@ export class ApiService {
   }
 
   /**
+   * [추가] 문서 ID 기반 유사도 검색
+   */
+  static async searchSimilarity(docId: string, limit: number = 5): Promise<InternalSearchResponse> {
+    const response = await fetch(`${API_BASE_URL}/search/similarity`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ doc_id: docId, limit }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`유사 문서 검색 실패: ${response.status}`);
+    }
+    return response.json();
+  }
+
+
+  /**
    * 채팅 스트리밍
    * Generator를 사용하여 스트리밍 데이터를 실시간으로 yield 합니다.
    */

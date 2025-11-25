@@ -35,21 +35,37 @@ const AppContent: React.FC = () => {
     setIsLoading(true);
     
     try {
-      const seedPaper = libraryPapers.find(paper => paper.id === selectedSeedPaper);
-      const seedPaperTitle = seedPaper?.title;
-      const mergedQuery = SearchService.mergeQueryWithSeedPaper(query, seedPaperTitle);
-      
       let response;
+      
+      // [수정] 1. 파일 기반 검색 (selectedSeedPaper 존재 시)
+      if (selectedSeedPaper) {
+         // 파일 검색은 내부 RAG 엔진을 사용하므로 searchSimilarity 호출
+         response = await ApiService.searchSimilarity(selectedSeedPaper, 5);
+         
+         // 시각화 뷰 생성 (Internal 뷰 포맷 사용)
+         const view = SearchService.transformInternalToVisualizationView(
+            response, 
+            `File: ${query}`, // 쿼리에는 파일 제목이 들어옴
+            'internal', 
+            selectedSeedPaper
+         );
+         
+         setVisualizationState({ currentViewIndex: 0, views: [view], maxViews: 20 });
+         setCurrentPage('visualization');
+         return; 
+      }
+
+      // [기존] 2. 텍스트 기반 검색
       if (mode === 'external') {
-        response = await ApiService.searchExternal(mergedQuery, 5);
+        response = await ApiService.searchExternal(query, 5);
         const view = SearchService.transformExternalToVisualizationView(
-          response, query, mode, selectedSeedPaper
+          response, query, mode, undefined
         );
         setVisualizationState({ currentViewIndex: 0, views: [view], maxViews: 20 });
       } else {
-        response = await ApiService.searchInternal(mergedQuery, 5, 0.7);
+        response = await ApiService.searchInternal(query, 5, 0.7);
         const view = SearchService.transformInternalToVisualizationView(
-          response, query, mode, selectedSeedPaper
+          response, query, mode, undefined
         );
         setVisualizationState({ currentViewIndex: 0, views: [view], maxViews: 20 });
       }
