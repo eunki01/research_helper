@@ -18,7 +18,7 @@ async def chat_stream(
         query_service.chat_stream(
             query=request.query, 
             history=request.history,
-            target_paper_ids=request.target_paper_ids
+            target_titles=request.target_titles
         ),
         media_type="text/event-stream"
     )

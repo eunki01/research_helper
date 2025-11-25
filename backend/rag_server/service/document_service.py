@@ -130,7 +130,13 @@ class DocumentService:
             raise HTTPException(status_code=500, detail="Unexpected internal error")
 
     # --- 검색 관련 메소드들 (쿼리 임베딩 포함) ---
-    def search_by_text(self, query_text: str, limit: Optional[int] = None, similarity_threshold: Optional[float] = None) -> List[SimilarityResult]:
+    def search_by_text(
+            self, 
+            query_text: str, 
+            limit: Optional[int] = None, 
+            similarity_threshold: Optional[float] = None,
+            target_titles: Optional[List[str]] = None
+    ) -> List[SimilarityResult]:
         logger.info(f"Performing text search for: '{query_text[:50]}...'")
         if not query_text:
              raise ValueError("Query text cannot be empty.")
@@ -144,7 +150,8 @@ class DocumentService:
             return self.repository.search_by_vector(
                 query_vector=query_vector,
                 limit=limit,
-                distance_threshold=distance_threshold_value
+                distance_threshold=distance_threshold_value,
+                target_titles=target_titles
             )
         except ValueError as ve:
              logger.error(f"ValueError during text search: {ve}")

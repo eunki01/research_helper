@@ -78,12 +78,12 @@ export class ApiService {
   static async *chatStream(
     query: string,
     history: Message[],
-    targetPaperIds?: string[]
+    targetTitles?: string[]
   ): AsyncGenerator<string, void, unknown> {
     const request: ChatRequest = {
       query,
       history,
-      target_paper_ids: targetPaperIds
+      target_titles: targetTitles
     };
 
     const response = await fetch(`${API_BASE_URL}/chat/stream`, {

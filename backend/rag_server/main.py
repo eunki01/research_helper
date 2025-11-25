@@ -179,7 +179,8 @@ async def search_documents(
         results = service.search_by_text(
             query_text=request.query_text,
             limit=request.limit,
-            similarity_threshold=request.similarity_threshold
+            similarity_threshold=request.similarity_threshold,
+            target_titles= request.target_titles
         )
         logger.info(f"Text search completed: {len(results)} results found.")
         return results

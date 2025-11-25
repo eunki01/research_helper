@@ -9,7 +9,7 @@ export interface Message {
 export interface ChatRequest {
   query: string;
   history: Message[];
-  target_paper_ids?: string[];
+  target_titles?: string[];
 }
 
 // ==================== 외부 검색 관련 ====================

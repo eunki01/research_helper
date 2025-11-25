@@ -39,6 +39,7 @@ class SearchRequest(BaseModel):
     query_text: Optional[str] = Field(None, description="검색할 텍스트 쿼리")
     limit: int = Field(5, description="반환받을 최대 결과 수")
     similarity_threshold: float = Field(0.7, description="유사도 점수 임계값 (0.0 ~ 1.0)")
+    target_titles: Optional[List[str]] = None
 
 class TitleSearchRequest(BaseModel):
     """제목 검색 요청 모델"""

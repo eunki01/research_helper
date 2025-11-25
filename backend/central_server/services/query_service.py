@@ -160,12 +160,15 @@ class QueryService:
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"외부 검색 처리 중 오류 발생: {str(e)}")
 
-    async def chat_stream(self, query: str, history: List[Message], target_paper_ids: List[str] = None) -> AsyncGenerator[str, None]:
+    async def chat_stream(self, query: str, history: List[Message], target_titles: List[str] = None) -> AsyncGenerator[str, None]:
         """RAG 검색 결과를 기반으로 LLM 답변을 스트리밍"""
         
         # 1. 질문에 적합한 컨텍스트 검색
-        # (현재는 간단히 RAG 검색 API 재사용. 추후엔 paper_ids 필터링 적용 가능)
-        search_payload = {"query_text": query, "limit": 5}
+        search_payload = {
+            "query_text": query, 
+            "limit": 5,
+            "target_titles": target_titles
+        }
         context = ""
 
         try:
@@ -179,7 +182,7 @@ class QueryService:
                 context = "\n\n---\n\n".join([chunk.get("content", "") for chunk in results])
                 
                 # (옵션) 만약 특정 논문만 대상으로 한다면, results에서 필터링
-                if target_paper_ids:
+                if target_titles:
                     # 예시 로직: title이나 doi에 ID가 포함된 것만 사용
                     # 실제로는 RAG 서버에 필터 파라미터를 보내는 것이 효율적
                     pass

@@ -60,13 +60,27 @@ class DocumentRepository:
             logger.error(f"Failed to store processed data for document '{doc_title}': {str(e)}", exc_info=True)
             raise RuntimeError(f"Database storage failed for {doc_title}") from e
 
-    def search_by_vector(self, query_vector: List[float], limit: int = None, distance_threshold: float = None) -> List[SimilarityResult]:
+    def search_by_vector(
+        self, 
+        query_vector: List[float], 
+        limit: int = None, 
+        distance_threshold: float = None,
+        target_titles: Optional[List[str]] = None
+    ) -> List[SimilarityResult]:
         if limit is None: limit = settings.DEFAULT_SEARCH_LIMIT
         effective_distance = distance_threshold if distance_threshold is not None else (1.0 - settings.DEFAULT_SIMILARITY_THRESHOLD)
         try:
             collection = self.db_manager.get_collection()
+
+            search_filter = None
+            if target_titles and len(target_titles) > 0:
+                search_filter = Filter.by_property("title").contains_any(target_titles)
+
             response = collection.query.near_vector(
-                near_vector=query_vector, limit=limit, distance=effective_distance,
+                near_vector=query_vector, 
+                limit=limit, 
+                distance=effective_distance,
+                filters=search_filter,
                 return_metadata=MetadataQuery(distance=True),
                 return_properties=["title", "content", "authors", "published", "doi", "chunk_index"],
                 include_vector=True

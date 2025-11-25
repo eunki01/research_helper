@@ -50,8 +50,8 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
     e.preventDefault();
     if (!input.trim() || isLoading) return;
 
-    const targetIds = selectedPapers.map(p => p.id);
-    sendMessage(input, targetIds);
+    const targetTitles = selectedPapers.map(p => p.title);
+    sendMessage(input, targetTitles);
     setInput('');
   };
 

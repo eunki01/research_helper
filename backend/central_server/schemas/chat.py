@@ -11,4 +11,4 @@ class ChatRequest(BaseModel):
     """채팅 스트리밍 요청 모델"""
     query: str = Field(..., description="사용자의 질문")
     history: List[Message] = Field([], description="이전 대화 기록")
-    target_paper_ids: List[str] = Field([], description="특정 논문을 대상으로 할 경우 해당 논문 ID 목록")
+    target_titles: List[str] = Field([], description="대화의 범위로 지정할 논문 제목 목록")
