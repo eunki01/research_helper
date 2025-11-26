@@ -86,7 +86,7 @@ class QueryService:
             
             
             # 4. 최종 응답 반환
-            return InternalSearchResponse( # InternalSearchResponse 모델로 반환
+            return InternalSearchResponse(
                 query=request.query_text,
                 answer=None,
                 references=references,
@@ -151,8 +151,9 @@ class QueryService:
             similarity_graph_data = self.similarity_service.calculate_similarity_graph(papers_for_similarity)
             similarity_graph = [SimilarityLink(**link) for link in similarity_graph_data]
             
+            # 4. 최종 응답 반환
             return InternalSearchResponse(
-                query=f"File ID: {request.doc_id}", # 텍스트 쿼리가 없으므로 파일 ID 표시
+                query=f"File ID: {request.doc_id}",
                 answer=None,
                 references=references,
                 similarity_graph=similarity_graph
@@ -180,12 +181,7 @@ class QueryService:
             response.raise_for_status()
             search_results = response.json()
             
-            # 3. LLM 컨텍스트 구성 및 답변 생성
-            context = self._build_external_context(search_results)
-            logger.info(f"--- LLM 컨텍스트 시작 ---\n{context[:500]}\n--- LLM 컨텍스트 끝 ---")
-            llm_answer = await self.llm_service.get_final_response(context, request.query_text)
-            
-            # 4. 최종 응답 데이터 구성 (references)
+            # 3. 최종 응답 데이터 구성
             references = []
             for paper in search_results:
                 # tldr이 딕셔너리 형태일 경우 text만 추출
@@ -215,7 +211,7 @@ class QueryService:
             # 6. 최종 응답 반환
             return ExternalSearchResponse( # ExternalSearchResponse 모델로 반환
                 query=request.query_text,
-                answer=llm_answer,
+                answer=None,
                 references=references,
                 similarity_graph=similarity_graph
             )
@@ -263,19 +259,6 @@ class QueryService:
     def _build_internal_context(self, chunks: List[Dict[str, Any]]) -> str:
         """내부 검색 결과를 LLM 컨텍스트로 구성"""
         return "\n\n---\n\n".join([chunk.get("content", "") for chunk in chunks])
-
-    def _build_external_context(self, papers: List[Dict[str, Any]]) -> str:
-        """외부 논문 검색 결과를 LLM 컨텍스트로 구성"""
-        context_parts = []
-        for paper in papers:
-            title = paper.get('title', '제목 없음'),
-            authors = ", ".join([author.get('name', '알 수 없음') for author in paper.get('authors', [])]),
-            publication_date = paper.get('publicationDate', '알 수 없음')
-            abstract = paper.get('abstract', '초록 없음'),
-            
-            context_parts.append(f"제목: {title}\n저자: {authors}\n출판일: {publication_date}\n\n초록:\n{abstract}")
-        
-        return "\n\n---\n\n".join(context_parts)
 
 # --- 팩토리 함수 추가 ---
 def get_query_service(
