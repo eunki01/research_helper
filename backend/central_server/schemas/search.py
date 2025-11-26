@@ -12,6 +12,11 @@ class ExternalSearchRequest(BaseModel):
     """외부 검색을 위한 요청 모델"""
     query_text: str = Field(..., description="사용자의 검색 질문 또는 쿼리")
     limit: int = Field(5, description="반환받을 최대 논문 수")
+    year: Optional[str] = Field(None, description="연도 범위 (예: '2020-2024', '2023')")
+    publication_types: Optional[List[str]] = Field(None, description="출판 유형")
+    open_access_pdf: Optional[bool] = Field(None, description="PDF 무료 열람 가능 여부")
+    venue: Optional[List[str]] = Field(None, description="저널 또는 학회명")
+    fields_of_study: Optional[List[str]] = Field(None, description="연구 분야")
 
 class DocumentSearchRequest(BaseModel):
     """문서 ID를 기준으로 유사한 문서를 검색하기 위한 요청 모델"""

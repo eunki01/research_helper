@@ -50,7 +50,12 @@ async def search_documents(
         # Semantic Scholar API를 통한 유사도 검색 수행
         results = searcher.search_by_text_via_api(
             query_text=request.query_text,
-            limit=request.limit
+            limit=request.limit,
+            year=request.year,
+            publication_types=request.publication_types,
+            open_access_pdf=request.open_access_pdf,
+            venue=request.venue,
+            fields_of_study=request.fields_of_study
         )
         
         logger.info(f"텍스트 검색 완료: {len(results)}개 결과")

@@ -16,6 +16,11 @@ export interface ChatRequest {
 export interface ExternalSearchRequest {
   query_text: string;
   limit?: number;
+  year?: string;
+  publication_types?: string[];
+  open_access_pdf?: boolean;
+  venue?: string[];
+  fields_of_study?: string[];
 }
 
 export interface ExternalReference {

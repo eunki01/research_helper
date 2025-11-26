@@ -9,6 +9,7 @@ import type {
   Message,
   PaperMetadata
 } from '../types/api';
+import type { SearchFilters } from '../types/search';
 
 // 환경 변수에서 API URL 가져오기
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
@@ -20,11 +21,28 @@ export class ApiService {
    */
   static async searchExternal(
     query: string,
-    limit: number = 5
+    limit: number = 5,
+    filters?: SearchFilters
   ): Promise<ExternalSearchResponse> {
+    // 1. UI 필터 상태를 API 요청 포맷으로 변환
+    let yearRange: string | undefined;
+    if (filters) {
+      if (filters.startYear && filters.endYear) yearRange = `${filters.startYear}-${filters.endYear}`;
+      else if (filters.startYear) yearRange = `${filters.startYear}-`;
+      else if (filters.endYear) yearRange = `-${filters.endYear}`;
+    }
+
     const request: ExternalSearchRequest = {
       query_text: query,
-      limit
+      limit,
+      // 변환된 필터 적용
+      ...(filters && {
+        year: yearRange,
+        publication_types: filters.publicationTypes.length > 0 ? filters.publicationTypes : undefined,
+        open_access_pdf: filters.isOpenAccess || undefined,
+        venue: filters.venues ? filters.venues.split(',').map(v => v.trim()).filter(v => v) : undefined,
+        fields_of_study: filters.fieldsOfStudy.length > 0 ? filters.fieldsOfStudy : undefined
+      })
     };
 
     const response = await fetch(`${API_BASE_URL}/search/external`, {

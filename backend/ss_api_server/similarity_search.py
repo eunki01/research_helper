@@ -1,5 +1,5 @@
 # similarity_search.py
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 import logging
 from fastapi import HTTPException, Depends
 from models import SemanticScholarResult, EmbeddingResult, TldrResult
@@ -44,7 +44,16 @@ class SimilaritySearcher:
             fieldsOfStudy=paper.get("fieldsOfStudy")
         )
 
-    def search_by_text_via_api(self, query_text: str, limit: int) -> List[SemanticScholarResult]:
+    def search_by_text_via_api(
+        self, 
+        query_text: str, 
+        limit: int,
+        year: Optional[str] = None,
+        publication_types: Optional[List[str]] = None,
+        open_access_pdf: Optional[bool] = None,
+        venue: Optional[List[str]] = None,
+        fields_of_study: Optional[List[str]] = None
+    ) -> List[SemanticScholarResult]:
         """
         Semantic Scholar API를 사용하여 텍스트 기반 논문 검색을 수행합니다.
         """
@@ -61,7 +70,12 @@ class SimilaritySearcher:
                 query=query_text,
                 limit=limit,
                 fields=search_fields,
-                sort=sort_order
+                sort=sort_order,
+                year=year,
+                publication_types=publication_types,
+                open_access_pdf=open_access_pdf,
+                venue=venue,
+                fields_of_study=fields_of_study
             )
 
             # 2. 결과 파싱

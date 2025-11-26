@@ -44,7 +44,7 @@ async def search_external_data(
     Semantic Scholar API 서버를 통해 검색을 수행하고 LLM 답변을 반환합니다.
     """
     try:
-        logger.info(f"외부 검색 요청 수신: {request.query_text}")
+        logger.info(f"외부 검색 요청 수신: {request.query_text} (Filters: {request.dict(exclude={'query_text', 'limit'})})")
         response = await query_service.process_external_search(request)
         return response
     except HTTPException:

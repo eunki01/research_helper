@@ -10,7 +10,7 @@ import ApiService from './services/apiService';
 import SearchService from './services/searchService';
 import { ThemeProvider, useTheme } from './context/ThemeContext';
 import type { VisualizationState } from './types/visualization';
-import type { SearchMode } from './types/search';
+import type { SearchMode, SearchFilters } from './types/search';
 import type { LibraryPaper } from './types/paper';
 
 // App 컴포넌트를 테마 컨텍스트로 감싸기
@@ -31,13 +31,13 @@ const AppContent: React.FC = () => {
   }, []);
 
   // 검색 실행
-  const handleSearch = async (query: string, mode: SearchMode, selectedSeedPaper?: string) => {
+  const handleSearch = async (query: string, mode: SearchMode, selectedSeedPaper?: string, filters?: SearchFilters) => {
     setIsLoading(true);
     
     try {
       let response;
       
-      // [수정] 1. 파일 기반 검색 (selectedSeedPaper 존재 시)
+      // 1. 파일 기반 검색 (selectedSeedPaper 존재 시)
       if (selectedSeedPaper) {
          // 파일 검색은 내부 RAG 엔진을 사용하므로 searchSimilarity 호출
          response = await ApiService.searchSimilarity(selectedSeedPaper, 5);
@@ -55,9 +55,9 @@ const AppContent: React.FC = () => {
          return; 
       }
 
-      // [기존] 2. 텍스트 기반 검색
+      // 2. 텍스트 기반 검색
       if (mode === 'external') {
-        response = await ApiService.searchExternal(query, 5);
+        response = await ApiService.searchExternal(query, 5, filters);
         const view = SearchService.transformExternalToVisualizationView(
           response, query, mode, undefined
         );

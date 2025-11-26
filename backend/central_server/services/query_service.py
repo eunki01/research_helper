@@ -174,9 +174,19 @@ class QueryService:
             logger.info(f"원본 쿼리: '{request.query_text}' -> 확장된 쿼리: '{expanded_query}'")
 
             # 2. 외부 ss_api 서버에 검색 요청
+            payload = {
+                "query_text": expanded_query,
+                "limit": request.limit,
+                "year": request.year,
+                "publication_types": request.publication_types,
+                "open_access_pdf": request.open_access_pdf,
+                "venue": request.venue,
+                "fields_of_study": request.fields_of_study
+            }
+
             response = await self.http_client.post(
                 f"{settings.SS_API_SERVER_URL}/search",
-                json={"query_text": expanded_query, "limit": request.limit}
+                json=payload
             )
             response.raise_for_status()
             search_results = response.json()

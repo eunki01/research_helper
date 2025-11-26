@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import type { LibraryPaper } from '../../types/paper';
-import type { SearchMode } from '../../types/search';
+import type { SearchFilters, SearchMode } from '../../types/search';
+import { DEFAULT_FILTERS } from '../../types/search';
 import LibraryModal from '../library/LibraryModal';
+import SearchFilterPanel from './SearchFilterPanel';
 
 interface SearchBarProps {
-  onSearch: (query: string, mode: SearchMode, selectedSeedPaper?: string) => void;
+  onSearch: (query: string, mode: SearchMode, selectedSeedPaper?: string, filters?: SearchFilters) => void;
   libraryPapers: LibraryPaper[];
   isLoading: boolean;
   currentMode: SearchMode;
@@ -20,6 +22,13 @@ const SearchBar: React.FC<SearchBarProps> = ({
   const [query, setQuery] = useState('');
   const [isLibraryOpen, setIsLibraryOpen] = useState(false);
   const [searchFile, setSearchFile] = useState<LibraryPaper | null>(null);
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [filters, setFilters] = useState<SearchFilters>(DEFAULT_FILTERS);
+
+  const activeFilterCount = [
+    filters.startYear, filters.endYear, filters.isOpenAccess,
+    filters.venues, ...filters.publicationTypes, ...filters.fieldsOfStudy
+  ].filter(Boolean).length;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -30,12 +39,13 @@ const SearchBar: React.FC<SearchBarProps> = ({
       // App.tsx에서 selectedSeedPaper(ID)가 있으면 텍스트 쿼리 대신 파일 기반 검색을 수행하도록 처리됨
       onSearch(searchFile.title, currentMode, searchFile.id);
     } else if (query.trim()) {
-      onSearch(query, currentMode);
+      // 텍스트 검색 시 필터 전달
+      onSearch(query, currentMode, undefined, filters);
     }
   };
 
   return (
-    <div className="w-full max-w-4xl mx-auto">
+    <div className="w-full max-w-4xl mx-auto relative">
       <form onSubmit={handleSubmit} className="relative flex items-center">
         {/* 검색 모드 토글 */}
         <div className="absolute left-3 z-10">
@@ -98,8 +108,30 @@ const SearchBar: React.FC<SearchBarProps> = ({
 
         {/* 우측 버튼 그룹 */}
         <div className="absolute right-3 flex items-center space-x-2">
-          {/* [추가] 파일 첨부(클립) 버튼 */}
-          {!searchFile && (
+          {/* [추가] 필터 버튼 (외부 검색일 때만 표시) */}
+          {!searchFile && currentMode === 'external' && (
+            <button
+              type="button"
+              onClick={() => setIsFilterOpen(!isFilterOpen)}
+              className={`p-2.5 rounded-xl transition-colors relative ${
+                isFilterOpen || activeFilterCount > 0 
+                  ? 'text-blue-600 bg-blue-50 hover:bg-blue-100' 
+                  : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
+              }`}
+              title="상세 필터"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
+              </svg>
+              {/* 필터 활성 배지 */}
+              {activeFilterCount > 0 && (
+                <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white"></span>
+              )}
+            </button>
+          )}
+
+          {/* 파일 첨부(클립) 버튼 */}
+          {!searchFile && currentMode !== 'external' && (
             <button
               type="button"
               onClick={() => setIsLibraryOpen(true)}
@@ -133,6 +165,15 @@ const SearchBar: React.FC<SearchBarProps> = ({
           </button>
         </div>
       </form>
+
+      {/* [추가] 필터 패널 렌더링 */}
+      {isFilterOpen && currentMode === 'external' && (
+        <SearchFilterPanel 
+          filters={filters} 
+          onChange={setFilters} 
+          onClose={() => setIsFilterOpen(false)} 
+        />
+      )}
 
       <LibraryModal
         isOpen={isLibraryOpen}
