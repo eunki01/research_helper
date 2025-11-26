@@ -192,26 +192,7 @@ class QueryService:
             search_results = response.json()
             
             # 3. 최종 응답 데이터 구성
-            references = []
-            for paper in search_results:
-                # tldr이 딕셔너리 형태일 경우 text만 추출
-                tldr_text = None
-                if tldr_data := paper.get('tldr'):
-                    tldr_text = tldr_data.get('text')
-
-                references.append(
-                    ExternalReference( # ExternalReference 모델 사용
-                        paperId=paper.get('paperId', ''),
-                        title=paper.get('title', '제목 없음'),
-                        openAccessPdf=paper.get('openAccessPdf'),
-                        authors=[author['name'] for author in paper.get('authors', []) if 'name' in author],
-                        publicationDate=paper.get('publicationDate'),
-                        tldr=tldr_text,
-                        citationCount=paper.get('citationCount'),
-                        venue=paper.get('venue'),
-                        fieldsOfStudy=paper.get('fieldsOfStudy')
-                    )
-                )
+            references = [self._map_to_external_reference(paper) for paper in search_results]
 
             # 5. 논문 간 유사도 계산
             papers_for_similarity = [{"paperId": ref.paperId, "embedding": paper.get("embedding", {}).get("vector")} for ref, paper in zip(references, search_results) if paper.get("embedding", {}).get("vector")]
@@ -230,6 +211,34 @@ class QueryService:
             raise HTTPException(status_code=e.response.status_code, detail=f"외부 서버 오류: {e.response.text}")
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"외부 검색 처리 중 오류 발생: {str(e)}")
+
+    # [추가] 인용 논문 조회
+    async def get_citations(self, paper_id: str, limit: int = 10) -> List[ExternalReference]:
+        try:
+            response = await self.http_client.get(
+                f"{settings.SS_API_SERVER_URL}/citations/{paper_id}",
+                params={"limit": limit}
+            )
+            response.raise_for_status()
+            data = response.json()
+            return [self._map_to_external_reference(paper) for paper in data]
+        except Exception as e:
+            logger.error(f"Citations fetch failed: {e}")
+            raise HTTPException(status_code=500, detail=f"인용 논문 조회 실패: {str(e)}")
+
+    # [추가] 참고 문헌 조회
+    async def get_references(self, paper_id: str, limit: int = 10) -> List[ExternalReference]:
+        try:
+            response = await self.http_client.get(
+                f"{settings.SS_API_SERVER_URL}/references/{paper_id}",
+                params={"limit": limit}
+            )
+            response.raise_for_status()
+            data = response.json()
+            return [self._map_to_external_reference(paper) for paper in data]
+        except Exception as e:
+            logger.error(f"References fetch failed: {e}")
+            raise HTTPException(status_code=500, detail=f"참고 문헌 조회 실패: {str(e)}")
 
     async def chat_stream(self, query: str, history: List[Message], target_titles: List[str] = None) -> AsyncGenerator[str, None]:
         """RAG 검색 결과를 기반으로 LLM 답변을 스트리밍"""
@@ -269,6 +278,23 @@ class QueryService:
     def _build_internal_context(self, chunks: List[Dict[str, Any]]) -> str:
         """내부 검색 결과를 LLM 컨텍스트로 구성"""
         return "\n\n---\n\n".join([chunk.get("content", "") for chunk in chunks])
+    
+    def _map_to_external_reference(self, paper: Dict[str, Any]) -> ExternalReference:
+        tldr_text = None
+        if tldr_data := paper.get('tldr'):
+            tldr_text = tldr_data.get('text')
+
+        return ExternalReference(
+            paperId=paper.get('paperId', ''),
+            title=paper.get('title', '제목 없음'),
+            openAccessPdf=paper.get('openAccessPdf'),
+            authors=[author['name'] for author in paper.get('authors', []) if 'name' in author],
+            publicationDate=paper.get('publicationDate'),
+            tldr=tldr_text,
+            citationCount=paper.get('citationCount'),
+            venue=paper.get('venue'),
+            fieldsOfStudy=paper.get('fieldsOfStudy')
+        )
 
 # --- 팩토리 함수 추가 ---
 def get_query_service(

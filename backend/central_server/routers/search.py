@@ -4,7 +4,7 @@ import logging
 from typing import List, Dict, Any
 
 from core.config import settings
-from schemas.search import InternalSearchRequest, InternalSearchResponse, ExternalSearchRequest, ExternalSearchResponse, DocumentSearchRequest
+from schemas.search import InternalSearchRequest, InternalSearchResponse, ExternalSearchRequest, ExternalSearchResponse, ExternalReference, DocumentSearchRequest
 from services.query_service import QueryService, get_query_service
 from core.database import get_db
 
@@ -70,3 +70,35 @@ async def search_by_document(
     except Exception as e:
         logger.error(f"문서 기반 검색 처리 중 오류 발생: {str(e)}")
         raise HTTPException(status_code=500, detail="문서 기반 검색 처리 중 오류가 발생했습니다.")
+
+# [추가] 인용 논문 조회 엔드포인트
+@router.get("/citations/{paper_id}", response_model=List[ExternalReference])
+async def get_citations(
+    paper_id: str,
+    limit: int = 10,
+    query_service: QueryService = Depends(get_query_service)
+):
+    """특정 논문을 인용한 논문 목록을 조회합니다."""
+    try:
+        return await query_service.get_citations(paper_id, limit)
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"인용 논문 조회 오류: {str(e)}")
+        raise HTTPException(status_code=500, detail="인용 논문 조회 중 오류가 발생했습니다.")
+
+# [추가] 참고 문헌 조회 엔드포인트
+@router.get("/references/{paper_id}", response_model=List[ExternalReference])
+async def get_references(
+    paper_id: str,
+    limit: int = 10,
+    query_service: QueryService = Depends(get_query_service)
+):
+    """특정 논문이 참고한 문헌 목록을 조회합니다."""
+    try:
+        return await query_service.get_references(paper_id, limit)
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"참고 문헌 조회 오류: {str(e)}")
+        raise HTTPException(status_code=500, detail="참고 문헌 조회 중 오류가 발생했습니다.")

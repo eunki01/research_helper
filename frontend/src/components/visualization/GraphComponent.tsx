@@ -155,22 +155,6 @@ const GraphComponent: React.FC<GraphComponentProps> = ({
     }
   }, [graph, nodeSizeConfig]);
 
-  useEffect(() => {
-    if (cy && elements.length > 0) {
-      const layout = cy.layout({
-        name: 'grid',
-        fit: true,
-        padding: 50,
-        animate: false,
-        avoidOverlap: true,
-        stop: () => {
-           cy.fit(undefined, 50);
-        }
-      } as any);
-      layout.run();
-    }
-  }, [cy, elements]);
-
   const setupSimulation = useCallback((cy: cytoscape.Core) => {
     if (simulationRef.current) simulationRef.current.stop();
 
@@ -181,8 +165,10 @@ const GraphComponent: React.FC<GraphComponentProps> = ({
       
       if (existingNode.nonempty()) {
         const pos = existingNode.position();
-        x = pos.x;
-        y = pos.y;
+        if (pos.x !== 0 || pos.y !== 0) {
+            x = pos.x;
+            y = pos.y;
+        }
       }
 
       return {
@@ -257,7 +243,7 @@ const GraphComponent: React.FC<GraphComponentProps> = ({
       }
     });
 
-    simulation.alpha(0.8).alphaTarget(0.05).restart();
+    simulation.alpha(0.5).alphaTarget(0.0).restart();
   }, [graph, cy]);
 
   const handleMouseOver = useCallback((event: cytoscape.EventObject) => {

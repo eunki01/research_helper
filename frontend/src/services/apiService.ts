@@ -2,6 +2,7 @@
 import type {
   ExternalSearchRequest,
   ExternalSearchResponse,
+  ExternalReference,
   InternalSearchRequest,
   InternalSearchResponse,
   UploadResponse,
@@ -57,6 +58,30 @@ export class ApiService {
       throw new Error(`외부 검색 실패: ${response.status} ${response.statusText}`);
     }
 
+    return response.json();
+  }
+
+  /**
+   * [추가] 인용 논문 조회 (Citations)
+   */
+  static async getCitations(paperId: string, limit: number = 10): Promise<ExternalReference[]> {
+    const response = await fetch(`${API_BASE_URL}/search/citations/${paperId}?limit=${limit}`);
+    
+    if (!response.ok) {
+      throw new Error(`인용 논문 조회 실패: ${response.status} ${response.statusText}`);
+    }
+    return response.json();
+  }
+
+  /**
+   * [추가] 참고 문헌 조회 (References)
+   */
+  static async getReferences(paperId: string, limit: number = 10): Promise<ExternalReference[]> {
+    const response = await fetch(`${API_BASE_URL}/search/references/${paperId}?limit=${limit}`);
+    
+    if (!response.ok) {
+      throw new Error(`참고 문헌 조회 실패: ${response.status} ${response.statusText}`);
+    }
     return response.json();
   }
 

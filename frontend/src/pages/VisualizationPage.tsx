@@ -2,7 +2,9 @@ import React, { useState } from 'react';
 import GraphComponent from '../components/visualization/GraphComponent';
 import ChatPanel from '../components/chat/ChatPanel';
 import Sidebar from '../components/layout/Sidebar';
-import type { VisualizationState } from '../types/visualization';
+import ExternalSidebar from '../components/layout/ExternalSidebar';
+import ApiService from '../services/apiService';
+import type { VisualizationState, PaperNode, PaperEdge } from '../types/visualization';
 import type { LibraryPaper } from '../types/paper';
 
 interface VisualizationPageProps {
@@ -18,11 +20,13 @@ const VisualizationPage: React.FC<VisualizationPageProps> = ({
   onNodeClick,
 }) => {
   const currentView = views[currentViewIndex];
+  const [graphData, setGraphData] = useState(currentView.graph);
   
   const [chatContextPapers, setChatContextPapers] = useState<LibraryPaper[]>([]);
   const [selectedNodeForSidebar, setSelectedNodeForSidebar] = useState<LibraryPaper | undefined>(undefined);
   const [searchSeedPaper, setSearchSeedPaper] = useState<LibraryPaper | null>(null);
   const [isChatOpen, setIsChatOpen] = useState(true);
+  const [isExpanding, setIsExpanding] = useState(false);
 
   const isExternalMode = currentView.graph.searchMode === 'external';
 
@@ -56,12 +60,89 @@ const VisualizationPage: React.FC<VisualizationPageProps> = ({
         setChatContextPapers(prev => [...prev, paper]);
         setSelectedNodeForSidebar(paper);
       }
-    }
-
-    if (selectedNodeForSidebar?.id === paper.id) {
-        setSelectedNodeForSidebar(undefined);
     } else {
-        setSelectedNodeForSidebar(paper);
+      if (selectedNodeForSidebar?.id === paper.id) {
+        setSelectedNodeForSidebar(undefined);
+      } else {
+          setSelectedNodeForSidebar(paper);
+      }
+    }
+  };
+
+  const mergeGraphData = (newPapers: any[], sourceId: string, type: 'citation' | 'reference') => {
+    setGraphData(prev => {
+      const existingNodeIds = new Set(prev.nodes.map(n => n.id));
+      const newNodes: PaperNode[] = [];
+      const newEdges: PaperEdge[] = [];
+
+      newPapers.forEach((paper, _) => {
+        // 노드 추가 (중복 방지)
+        if (!existingNodeIds.has(paper.paperId)) {
+          newNodes.push({
+            id: paper.paperId,
+            type: 'paper',
+            data: {
+              ...paper,
+              type: 'paper',
+              label: paper.title,
+              id: paper.paperId // data 내부에도 id 포함
+            },
+            position: { x: 0, y: 0 }, // GraphComponent가 알아서 레이아웃 재배치
+            locked: false
+          });
+          existingNodeIds.add(paper.paperId);
+        }
+
+        // 엣지 추가
+        const edgeId = `${sourceId}-${paper.paperId}-${type}`;
+        newEdges.push({
+          id: edgeId,
+          source: type === 'citation' ? paper.paperId : sourceId, // 인용: 타겟 -> 소스, 참고: 소스 -> 타겟
+          target: type === 'citation' ? sourceId : paper.paperId,
+          type: 'similarity', // 혹은 'citation'으로 구분 가능
+          similarity: 1.0 // 관계가 확실하므로 1.0
+        });
+      });
+
+      return {
+        ...prev,
+        nodes: [...prev.nodes, ...newNodes],
+        edges: [...prev.edges, ...newEdges]
+      };
+    });
+  };
+
+  const handleExpandCitations = async (paperId: string) => {
+    setIsExpanding(true);
+    try {
+      const citations = await ApiService.getCitations(paperId, 5); // 5개만 가져옴
+      if (citations.length > 0) {
+        mergeGraphData(citations, paperId, 'citation');
+      } else {
+        alert('인용된 논문이 없습니다.');
+      }
+    } catch (error) {
+      console.error('Failed to expand citations:', error);
+      alert('인용 논문을 불러오는데 실패했습니다.');
+    } finally {
+      setIsExpanding(false);
+    }
+  };
+
+  const handleExpandReferences = async (paperId: string) => {
+    setIsExpanding(true);
+    try {
+      const references = await ApiService.getReferences(paperId, 5);
+      if (references.length > 0) {
+        mergeGraphData(references, paperId, 'reference');
+      } else {
+        alert('참고 문헌이 없습니다.');
+      }
+    } catch (error) {
+      console.error('Failed to expand references:', error);
+      alert('참고 문헌을 불러오는데 실패했습니다.');
+    } finally {
+      setIsExpanding(false);
     }
   };
 
@@ -129,12 +210,12 @@ const VisualizationPage: React.FC<VisualizationPageProps> = ({
       {/* 2. 중앙: 그래프 시각화 영역 */}
       <div className="flex-1 relative bg-gray-50 overflow-hidden">
         <GraphComponent 
-          graphData={currentView.graph}
+          graphData={graphData}
           onNodeClick={handleGraphNodeClick}
           onNodeRightClick={handleGraphNodeRightClick}
           selectedNodeIds={isExternalMode ? [] : chatContextPapers.map(p => p.id)} 
-          seedNodeId={searchSeedPaper?.id}
-          isExpanding={false}
+          seedNodeId={isExternalMode ? selectedNodeForSidebar?.id : searchSeedPaper?.id}
+          isExpanding={isExpanding}
         />
         
         {/* 그래프 정보 오버레이 (우측 상단) */}
@@ -182,11 +263,20 @@ const VisualizationPage: React.FC<VisualizationPageProps> = ({
       </div>
 
       {/* 3. 우측: 사이드바 */}
-      <Sidebar 
-        selectedPaper={selectedNodeForSidebar}
-        searchSeedPaper={searchSeedPaper}
-        onExplorePaper={handleExecuteSearch}
-      />
+      {isExternalMode ? (
+        <ExternalSidebar 
+          selectedPaper={selectedNodeForSidebar}
+          onExpandCitations={handleExpandCitations}
+          onExpandReferences={handleExpandReferences}
+          isLoading={isExpanding}
+        />
+      ) : (
+        <Sidebar 
+          selectedPaper={selectedNodeForSidebar}
+          searchSeedPaper={searchSeedPaper}
+          onExplorePaper={handleExecuteSearch}
+        />
+      )}
     </div>
   );
 };
