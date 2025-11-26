@@ -105,6 +105,36 @@ class SemanticScholarClient:
         # 'recommendedPapers' 키가 없거나 None일 경우 빈 리스트 반환
         return data.get("recommendedPapers", []) if data else []
 
+    def get_citations(self, paper_id: str, limit: int, fields: List[str]) -> List[Dict[str, Any]]:
+        """
+        특정 논문을 인용한 논문(Citations) 목록을 조회합니다.
+        API: /graph/v1/paper/{paper_id}/citations
+        """
+        url = f"{BASE_API_URL}/paper/{paper_id}/citations"
+        params = {
+            "limit": limit,
+            "fields": ",".join(fields),
+        }
+        logger.info(f"Requesting citations for paper: {paper_id}, limit={limit}")
+        data = self._request(method="GET", url=url, params=params)
+        # 응답 구조: {'data': [{'citingPaper': {...}}, ...]}
+        return data.get("data", []) if data else []
+
+    def get_references(self, paper_id: str, limit: int, fields: List[str]) -> List[Dict[str, Any]]:
+        """
+        특정 논문이 참고한 문헌(References) 목록을 조회합니다.
+        API: /graph/v1/paper/{paper_id}/references
+        """
+        url = f"{BASE_API_URL}/paper/{paper_id}/references"
+        params = {
+            "limit": limit,
+            "fields": ",".join(fields),
+        }
+        logger.info(f"Requesting references for paper: {paper_id}, limit={limit}")
+        data = self._request(method="GET", url=url, params=params)
+        # 응답 구조: {'data': [{'citedPaper': {...}}, ...]}
+        return data.get("data", []) if data else []
+
 # --- 팩토리 함수 ---
 def get_semantic_scholar_client() -> SemanticScholarClient:
     """FastAPI Depends를 위한 SemanticScholarClient 팩토리 함수"""

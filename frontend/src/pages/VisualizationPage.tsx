@@ -24,6 +24,8 @@ const VisualizationPage: React.FC<VisualizationPageProps> = ({
   const [searchSeedPaper, setSearchSeedPaper] = useState<LibraryPaper | null>(null);
   const [isChatOpen, setIsChatOpen] = useState(true);
 
+  const isExternalMode = currentView.graph.searchMode === 'external';
+
   const convertNodeToPaper = (nodeData: any): LibraryPaper => ({
     id: nodeData.id,
     title: nodeData.title || nodeData.label || 'Unknown Title',
@@ -42,16 +44,24 @@ const VisualizationPage: React.FC<VisualizationPageProps> = ({
 
   const handleGraphNodeClick = (nodeData: any) => {
     const paper = convertNodeToPaper(nodeData);
-    const isAlreadySelected = chatContextPapers.some(p => p.id === paper.id);
-
-    if (isAlreadySelected) {
-      setChatContextPapers(prev => prev.filter(p => p.id !== paper.id));
-      if (selectedNodeForSidebar?.id === paper.id) {
-        setSelectedNodeForSidebar(undefined);
+  
+    if (!isExternalMode) {
+      const isAlreadySelected = chatContextPapers.some(p => p.id === paper.id);
+      if (isAlreadySelected) {
+        setChatContextPapers(prev => prev.filter(p => p.id !== paper.id));
+        if (selectedNodeForSidebar?.id === paper.id) {
+          setSelectedNodeForSidebar(undefined);
+        }
+      } else {
+        setChatContextPapers(prev => [...prev, paper]);
+        setSelectedNodeForSidebar(paper);
       }
+    }
+
+    if (selectedNodeForSidebar?.id === paper.id) {
+        setSelectedNodeForSidebar(undefined);
     } else {
-      setChatContextPapers(prev => [...prev, paper]);
-      setSelectedNodeForSidebar(paper);
+        setSelectedNodeForSidebar(paper);
     }
   };
 
@@ -75,6 +85,7 @@ const VisualizationPage: React.FC<VisualizationPageProps> = ({
   return (
     <div className="flex h-[calc(100vh-64px)] overflow-hidden bg-white relative">
       {/* 1. 좌측: 채팅 패널 */}
+      {!isExternalMode && (
       <div 
         className={`border-r border-gray-200 flex flex-col bg-gray-50 z-10 shadow-xl transition-all duration-300 ease-in-out overflow-hidden ${
           isChatOpen ? 'w-[400px] opacity-100' : 'w-0 opacity-0'
@@ -101,8 +112,9 @@ const VisualizationPage: React.FC<VisualizationPageProps> = ({
           />
         </div>
       </div>
+      )}
 
-      {!isChatOpen && (
+      {!isExternalMode && !isChatOpen && (
         <button 
           onClick={() => setIsChatOpen(true)}
           className="absolute left-4 bottom-4 z-20 p-3 bg-blue-600 text-white rounded-full shadow-lg hover:bg-blue-700 transition-colors"
@@ -120,7 +132,7 @@ const VisualizationPage: React.FC<VisualizationPageProps> = ({
           graphData={currentView.graph}
           onNodeClick={handleGraphNodeClick}
           onNodeRightClick={handleGraphNodeRightClick}
-          selectedNodeIds={chatContextPapers.map(p => p.id)} 
+          selectedNodeIds={isExternalMode ? [] : chatContextPapers.map(p => p.id)} 
           seedNodeId={searchSeedPaper?.id}
           isExpanding={false}
         />
@@ -131,7 +143,7 @@ const VisualizationPage: React.FC<VisualizationPageProps> = ({
           <p className="text-xs text-gray-600 line-clamp-2">"{currentView.query}"</p>
         </div>
 
-        {/* [추가] 도움말 아이콘 (우측 하단) */}
+        {/* 도움말 아이콘 (우측 하단) */}
         <div className="absolute bottom-6 right-6 z-20 group">
           {/* 아이콘 버튼 */}
           <div className="w-10 h-10 bg-white rounded-full shadow-lg border border-gray-200 flex items-center justify-center text-gray-500 hover:text-blue-600 hover:border-blue-300 cursor-help transition-colors">
