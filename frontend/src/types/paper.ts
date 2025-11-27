@@ -4,14 +4,20 @@ export interface Paper {
   id: string;
   title: string;
   authors: Author[];
-  publicationDate?: string;
-  venue?: string;
-  citationCount?: number;
-  abstract?: string;
-  openAccessPdf?: string;
-  tldr?: string;
-  fieldsOfStudy?: string[];
   type: 'paper' | 'author';
+  publicationDate?: string;
+  abstract?: string;
+  venue?: string;           
+  citationCount?: number;   
+  tldr?: string;           
+  openAccessPdf?: string;   
+  fieldsOfStudy?: string[];
+}
+
+export interface LibraryPaper extends Paper {
+  uploadedAt: string;
+  filePath?: string;
+  isSeed?: boolean;
 }
 
 export interface Author {
@@ -25,7 +31,7 @@ export interface Author {
 export interface PaperNode {
   id: string;
   type: 'paper' | 'author';
-  data: Paper;
+  data: Paper | LibraryPaper;
   position?: { x: number; y: number };
   locked?: boolean;
 }
@@ -46,10 +52,5 @@ export interface PaperGraph {
   searchMode?: 'internal' | 'external';
 }
 
-export interface LibraryPaper extends Paper {
-  uploadedAt: string;
-  filePath?: string;
-  isSeed?: boolean;
-}
 
 

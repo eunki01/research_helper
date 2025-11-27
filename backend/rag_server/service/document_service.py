@@ -37,7 +37,11 @@ class DocumentService:
                 "title": original_filename or file_path.stem,
                 "authors": "Unknown",
                 "published": datetime.now(timezone.utc),
-                "doi": f"uploaded_{file_path.stem}"
+                "doi": f"uploaded_{file_path.stem}",
+                "venue": None,
+                "citation_count": None,
+                "tldr": None,
+                "open_access_pdf": None
             }
 
             if metadata:
@@ -49,6 +53,11 @@ class DocumentService:
                         final_metadata["published"] = datetime(year_val, 1, 1, tzinfo=timezone.utc)
                     except (ValueError, TypeError):
                         pass
+
+                if metadata.get("venue"): final_metadata["venue"] = metadata["venue"]
+                if metadata.get("citation_count"): final_metadata["citation_count"] = metadata["citation_count"]
+                if metadata.get("tldr"): final_metadata["tldr"] = metadata["tldr"]
+                if metadata.get("open_access_pdf"): final_metadata["open_access_pdf"] = metadata["open_access_pdf"]
 
             processed_data_objects = []
             for i, chunk in enumerate(chunks):
@@ -64,7 +73,11 @@ class DocumentService:
                         "published": final_metadata.get("published"),
                         "doi": final_metadata.get('doi', f"uploaded_{final_metadata.get('title', 'unknown')}_{i}"),
                         "chunk_index": i,
-                        "vector": embedding_vector
+                        "vector": embedding_vector,
+                        "venue": final_metadata.get("venue"),
+                        "citation_count": final_metadata.get("citation_count"),
+                        "tldr": final_metadata.get("tldr"),
+                        "open_access_pdf": final_metadata.get("open_access_pdf")
                     }
                     processed_data_objects.append(data_object)
                 except Exception as e:
@@ -148,7 +161,7 @@ class DocumentService:
             exclude_titles=None # 제외 안 함
         )
 
-        # 4. [신규] 문서 다양성 필터링 (Document Diversity Filtering)
+        # 4. 문서 다양성 필터링 (Document Diversity Filtering)
         # 목표: 상위 'limit'개의 *고유한 문서*를 찾고, 그 문서들에 속한 청크들을 반환
         
         unique_titles = [] # 순서 유지하며 고유 제목 저장

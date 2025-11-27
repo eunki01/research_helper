@@ -145,7 +145,7 @@ export class SearchService {
       publicationDate: ref.publicationDate,
       venue: ref.venue,
       citationCount: ref.citationCount,
-      abstract: '', // ExternalReference에는 abstract가 없음
+      abstract: ref.abstract ||'',
       openAccessPdf: ref.openAccessPdf,
       tldr: ref.tldr,
       fieldsOfStudy: ref.fieldsOfStudy,

@@ -43,7 +43,8 @@ const VisualizationPage: React.FC<VisualizationPageProps> = ({
     venue: nodeData.venue,
     citationCount: nodeData.citationCount,
     tldr: nodeData.tldr,
-    fieldsOfStudy: nodeData.fieldsOfStudy
+    fieldsOfStudy: nodeData.fieldsOfStudy,
+    openAccessPdf: nodeData.openAccessPdf
   });
 
   const handleGraphNodeClick = (nodeData: any) => {

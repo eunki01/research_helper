@@ -70,7 +70,11 @@ async def upload_file(
     authors: Optional[str] = Form(None), 
     year: Optional[int] = Form(None),
     handler: FileHandler = Depends(get_file_handler),
-    service: DocumentService = Depends(get_document_service)
+    service: DocumentService = Depends(get_document_service),
+    venue: Optional[str] = Form(None),
+    citation_count: Optional[int] = Form(None),
+    tldr: Optional[str] = Form(None),
+    open_access_pdf: Optional[str] = Form(None),
 ):
     file_path: Path | None = None
     original_filename = file.filename if file else "unknown_file"
@@ -86,7 +90,11 @@ async def upload_file(
         user_metadata = {
             "title": title,
             "authors": authors,
-            "year": year
+            "year": year,
+            "venue": venue,
+            "citation_count": citation_count,
+            "tldr": tldr,
+            "open_access_pdf": open_access_pdf
         }
 
         # 3. Process and Store Document (Service)

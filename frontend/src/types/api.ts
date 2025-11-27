@@ -26,6 +26,7 @@ export interface ExternalSearchRequest {
 export interface ExternalReference {
   paperId: string;
   title: string;
+  abstract?: string;
   openAccessPdf?: string;
   authors?: string[];
   publicationDate?: string;

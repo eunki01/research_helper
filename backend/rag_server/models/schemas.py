@@ -17,6 +17,10 @@ class SimilarityResult(BaseModel):
     distance: float = Field(..., description="쿼리 벡터와의 거리")
     chunk_index: Optional[int] = Field(None, description="문서 내 청크의 순서")
     vector: Optional[List[float]] = Field(None, description="청크의 임베딩 벡터")
+    venue: Optional[str] = Field(None, description="저널 또는 학회명")
+    citation_count: Optional[int] = Field(None, description="논문의 피인용 횟수")
+    tldr: Optional[str] = Field(None, description="AI가 생성한 한 문장 요약 (TL;DR)")
+    open_access_pdf: Optional[str] = Field(None, description="논문 상세 페이지 또는 PDF 파일 URL")
 
 class UploadResponse(BaseModel):
     """파일 업로드 성공 시 반환되는 응답 모델"""

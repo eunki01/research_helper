@@ -1,6 +1,6 @@
 # backend/central_server/main.py
 from fastapi import FastAPI, HTTPException
-from routers import users, search, collection, paper, author, chat
+from routers import users, search, collection, paper, author, chat, library
 from core.database import lifespan
 from fastapi.middleware.cors import CORSMiddleware
 import logging
@@ -29,6 +29,7 @@ app.include_router(paper.router)
 app.include_router(author.router)
 app.include_router(search.router)
 app.include_router(chat.router)
+app.include_router(library.router)
 
 # CORS 미들웨어 추가
 app.add_middleware(

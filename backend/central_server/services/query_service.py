@@ -287,6 +287,7 @@ class QueryService:
         return ExternalReference(
             paperId=paper.get('paperId', ''),
             title=paper.get('title', '제목 없음'),
+            abstract=paper.get('abstract'),
             openAccessPdf=paper.get('openAccessPdf'),
             authors=[author['name'] for author in paper.get('authors', []) if 'name' in author],
             publicationDate=paper.get('publicationDate'),

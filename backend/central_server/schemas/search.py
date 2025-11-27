@@ -58,6 +58,7 @@ class ExternalReference(BaseModel):
     """외부 논문 검색 결과를 위한 Reference 모델"""
     paperId: str = Field(..., description="Semantic Scholar의 논문 고유 ID")
     title: str = Field(..., description="논문의 제목")
+    abstract: Optional[str] = Field(None, description="논문의 초록")
     openAccessPdf: Optional[str] = Field(None, description="논문 상세 페이지 또는 PDF 파일 URL")
     authors: Optional[List[str]] = Field(None, description="논문의 저자 목록")
     publicationDate: Optional[str] = Field(None, description="논문의 발행일")

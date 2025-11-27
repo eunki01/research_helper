@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import type { LibraryPaper } from '../../types/paper';
+import ApiService from '../../services/apiService';
 
 interface ExternalSidebarProps {
   selectedPaper?: LibraryPaper; // 선택된 논문 정보
@@ -14,6 +15,26 @@ const ExternalSidebar: React.FC<ExternalSidebarProps> = ({
   onExpandReferences,
   isLoading = false
 }) => {
+  const [isSaving, setIsSaving] = useState(false); // 저장 로딩 상태
+
+  const isSaveable = selectedPaper && !!selectedPaper.abstract;
+
+  // 저장 핸들러
+  const handleSaveToLibrary = async () => {
+    if (!selectedPaper || !isSaveable) return;
+    
+    setIsSaving(true);
+    try {
+      await ApiService.savePaperToLibrary(selectedPaper);
+      alert("라이브러리에 성공적으로 저장되었습니다!");
+    } catch (error) {
+      console.error("Save failed:", error);
+      alert(`저장에 실패했습니다: ${error instanceof Error ? error.message : "알 수 없는 오류"}`);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   if (!selectedPaper) {
     return (
       <aside className="w-96 bg-gray-50 border-l border-gray-200 p-8 overflow-y-auto flex-shrink-0 flex flex-col items-center justify-center text-gray-400 text-center">
@@ -68,6 +89,35 @@ const ExternalSidebar: React.FC<ExternalSidebarProps> = ({
               </div>
             </button>
           </div>
+
+          {/* [추가] 라이브러리 저장 버튼 */}
+          <button
+            onClick={handleSaveToLibrary}
+            disabled={isSaving || isLoading || !isSaveable}
+            title={!isSaveable ? "저장할 초록(Abstract)이 없습니다." : "라이브러리에 저장"}
+            className={`w-full py-2.5 px-4 rounded-lg flex items-center justify-center font-semibold text-white transition-all shadow-sm mt-4 ${
+              isSaving 
+                ? 'bg-green-400 cursor-not-allowed' 
+                : 'bg-green-600 hover:bg-green-700 active:scale-95'
+            }`}
+          >
+            {isSaving ? (
+              <>
+                <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                저장 중...
+              </>
+            ) : (
+              <>
+                <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-4 4m0 0l-4-4m4 4V4" />
+                </svg>
+                {isSaveable ? "라이브러리에 저장" : "저장 불가 (PDF/초록 없음)"}
+              </>
+            )}
+          </button>
         </div>
       </div>
 

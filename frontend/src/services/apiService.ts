@@ -8,8 +8,9 @@ import type {
   UploadResponse,
   ChatRequest,
   Message,
-  PaperMetadata
+  PaperMetadata,
 } from '../types/api';
+import type { LibraryPaper } from '../types/paper';
 import type { SearchFilters } from '../types/search';
 
 // 환경 변수에서 API URL 가져오기
@@ -62,7 +63,7 @@ export class ApiService {
   }
 
   /**
-   * [추가] 인용 논문 조회 (Citations)
+   * 인용 논문 조회 (Citations)
    */
   static async getCitations(paperId: string, limit: number = 10): Promise<ExternalReference[]> {
     const response = await fetch(`${API_BASE_URL}/search/citations/${paperId}?limit=${limit}`);
@@ -74,7 +75,7 @@ export class ApiService {
   }
 
   /**
-   * [추가] 참고 문헌 조회 (References)
+   * 참고 문헌 조회 (References)
    */
   static async getReferences(paperId: string, limit: number = 10): Promise<ExternalReference[]> {
     const response = await fetch(`${API_BASE_URL}/search/references/${paperId}?limit=${limit}`);
@@ -83,6 +84,34 @@ export class ApiService {
       throw new Error(`참고 문헌 조회 실패: ${response.status} ${response.statusText}`);
     }
     return response.json();
+  }
+
+  // [추가] 외부 논문 라이브러리 저장
+  static async savePaperToLibrary(paper: LibraryPaper): Promise<void> {
+    // LibraryPaper 타입을 백엔드 SavePaperRequest 스키마에 맞춰 변환
+    // (LibraryPaper의 id는 외부 검색 시 paperId 값을 가지고 있음)
+    const payload = {
+      paperId: paper.id, 
+      title: paper.title,
+      authors: paper.authors.map(a => a.name),
+      publicationDate: paper.publicationDate,
+      abstract: paper.abstract,
+      openAccessPdf: paper.openAccessPdf,
+      venue: paper.venue,
+      citationCount: paper.citationCount,
+      tldr: paper.tldr
+    };
+
+    const response = await fetch(`${API_BASE_URL}/library/save`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.detail || `저장 실패: ${response.status}`);
+    }
   }
 
   /**
@@ -115,7 +144,7 @@ export class ApiService {
   }
 
   /**
-   * [추가] 문서 ID 기반 유사도 검색
+   * 문서 ID 기반 유사도 검색
    */
   static async searchSimilarity(docId: string, limit: number = 5): Promise<InternalSearchResponse> {
     const response = await fetch(`${API_BASE_URL}/search/similarity`, {

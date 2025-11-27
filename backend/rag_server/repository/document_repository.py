@@ -110,6 +110,11 @@ class DocumentRepository:
                     search_filter = exclude_filter
 
             # 2. 검색 실행 (Hybrid or Near Vector)
+            properties_to_return = [
+                "title", "content", "authors", "published", "doi", "chunk_index",
+                "venue", "citation_count", "tldr", "open_access_pdf"
+            ]
+            
             if text_query:
                 # [Hybrid Search] 벡터 + 키워드(제목, 본문, 저자 등 모든 텍스트 필드) 통합 검색
                 # alpha=0.5는 벡터와 키워드 검색 결과를 균형있게 반영함
@@ -121,7 +126,7 @@ class DocumentRepository:
                     limit=limit,
                     filters=search_filter,
                     return_metadata=MetadataQuery(score=True, distance=True),
-                    return_properties=["title", "content", "authors", "published", "doi", "chunk_index"],
+                    return_properties=properties_to_return,
                     include_vector=True
                 )
             else:
@@ -133,7 +138,7 @@ class DocumentRepository:
                     distance=distance_threshold,
                     filters=search_filter,
                     return_metadata=MetadataQuery(distance=True),
-                    return_properties=["title", "content", "authors", "published", "doi", "chunk_index"],
+                    return_properties=properties_to_return,
                     include_vector=True
                 )
             
@@ -158,7 +163,11 @@ class DocumentRepository:
                     similarity_score=similarity_score, 
                     distance=distance,
                     vector=obj.vector.get("default") if obj.vector else None,
-                    chunk_index=props.get("chunk_index")
+                    chunk_index=props.get("chunk_index"),
+                    venue=props.get("venue"),
+                    citation_count=props.get("citation_count"), 
+                    tldr=props.get("tldr"),
+                    open_access_pdf=props.get("open_access_pdf")
                 ))
                 
             logger.info(f"Search completed. Found {len(results)} items.")
@@ -173,7 +182,10 @@ class DocumentRepository:
             collection = self.db_manager.get_collection()
             response = collection.query.fetch_objects(
                 limit=limit or 100,
-                return_properties=["title", "content", "authors", "published", "doi", "chunk_index"],
+                return_properties=[
+                    "title", "content", "authors", "published", "doi", "chunk_index",
+                    "venue", "citation_count", "tldr", "open_access_pdf"
+                ],
                 return_metadata=MetadataQuery(creation_time=True),
                 include_vector=False
             )
@@ -197,7 +209,11 @@ class DocumentRepository:
                         published=props.get("published"),
                         doi=props.get("doi", ""),
                         similarity_score=0.0, distance=0.0, vector=None,
-                        chunk_index=props.get("chunk_index")
+                        chunk_index=props.get("chunk_index"),
+                        venue=props.get("venue"),
+                        citation_count=props.get("citation_count"), 
+                        tldr=props.get("tldr"),
+                        open_access_pdf=props.get("open_access_pdf")
                     ))
             logger.info(f"Fetched all documents: {len(results)} unique papers found.")
             return results
