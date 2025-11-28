@@ -1,6 +1,6 @@
 // src/styles/cytoscapeStyles.ts
 
-// [추가] 스타일 인터페이스 직접 정의
+// 스타일 인터페이스 직접 정의
 interface GraphStyle {
   selector: string;
   style: {
@@ -16,12 +16,12 @@ export const cytoscapeStyles: GraphStyle[] = [
       'background-color': '#ffffff',
       'border-width': 2,
       'border-color': '#94a3b8', // slate-400
-      'label': 'data(displayLabel)', // [수정] 짧은 제목 사용
-      'text-valign': 'center',       // [수정] 수직 중앙 정렬 (노드 내부)
-      'text-halign': 'center',       // [수정] 수평 중앙 정렬
-      'text-wrap': 'wrap',           // [추가] 텍스트 줄바꿈 허용
-      'text-max-width': '80px',      // [추가] 텍스트 최대 너비 제한
-      'font-size': '10px',           // [수정] 내부 텍스트에 맞게 폰트 크기 조정 (필요시 data(fontSize) 대신 고정값 사용 고려)
+      'label': 'data(displayLabel)', // 짧은 제목 사용
+      'text-valign': 'center',       // 수직 중앙 정렬 (노드 내부)
+      'text-halign': 'center',       // 수평 중앙 정렬
+      'text-wrap': 'wrap',           // 텍스트 줄바꿈 허용
+      'text-max-width': '80px',      // 텍스트 최대 너비 제한
+      'font-size': '10px',           // 내부 텍스트에 맞게 폰트 크기 조정
       'color': '#334155',            // 텍스트 색상
       'width': 'data(nodeSize)',
       'height': 'data(nodeSize)',
@@ -30,7 +30,7 @@ export const cytoscapeStyles: GraphStyle[] = [
     }
   },
 
-  // [추가] 고정된(Pinned) 노드 스타일
+  // 고정된(Pinned) 노드 스타일
   {
     selector: 'node.pinned',
     style: {

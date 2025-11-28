@@ -92,7 +92,6 @@ export interface GraphComponentProps {
   graphData: PaperGraph;
   onNodeClick?: (nodeData: any) => void;
   onNodeRightClick?: (nodeData: any) => void;
-  onNodeDblClick?: (nodeData: any) => void;
   selectedNodeIds?: string[];
   seedNodeId?: string | null;
   isExpanding?: boolean;
@@ -103,7 +102,6 @@ const GraphComponent: React.FC<GraphComponentProps> = ({
   graphData,
   onNodeClick,
   onNodeRightClick,
-  onNodeDblClick,
   selectedNodeIds = [],
   seedNodeId = null,
   isExpanding = false
@@ -132,7 +130,7 @@ const GraphComponent: React.FC<GraphComponentProps> = ({
             ...node.data,
             id: node.id,
             label: fullTitle, // 툴팁용 전체 제목
-            displayLabel: displayLabel, // [추가] 노드 표시용 짧은 제목
+            displayLabel: displayLabel, // 노드 표시용 짧은 제목
             type: node.data.type,
             nodeSize: nodeSizeConfig.nodeSize,
             labelSize: nodeSizeConfig.labelSize,
@@ -274,7 +272,7 @@ const GraphComponent: React.FC<GraphComponentProps> = ({
     setTooltip(prev => ({ ...prev, visible: false }));
   }, []);
 
-  // 2. [추가] 엣지 마우스 오버 (툴팁)
+  // 2. 엣지 마우스 오버 (툴팁)
   const handleEdgeMouseOver = useCallback((event: cytoscape.EventObject) => {
     const edge = event.target;
     edge.addClass('hover'); // 스타일 적용
@@ -294,7 +292,7 @@ const GraphComponent: React.FC<GraphComponentProps> = ({
       content = `
         <div class="flex items-center gap-2">
           <span class="w-2 h-2 rounded-full bg-slate-400"></span>
-          <span class="font-semibold">유사도: ${scorePercent}%</span>
+          <span class="font-semibold">벡터 유사도 점수: ${scorePercent}</span>
         </div>
       `;
     }
@@ -366,34 +364,6 @@ const GraphComponent: React.FC<GraphComponentProps> = ({
     simulationRef.current.alpha(BASE_SIMULATION_CONFIG.alpha.dragEnd).restart();
   }, [cy]);
 
-  // 더블클릭 핸들러
-  const handleDblClick = useCallback((event: cytoscape.EventObject) => {
-    const node = event.target;
-    if (node.isNode()) {
-      // 고정 해제 및 스타일 제거
-      node.unlock();
-      node.removeClass('pinned');
-      
-      const d3Node = nodesRef.current.find(n => n.id === node.id());
-      if (d3Node) {
-        // D3 시뮬레이션 고정 해제 (다시 움직임)
-        d3Node.fx = null;
-        d3Node.fy = null;
-        d3Node.locked = false;
-      }
-      
-      // 시뮬레이션을 살짝 깨워서 자연스럽게 자리 잡도록 함
-      if (simulationRef.current) {
-        simulationRef.current.alpha(0.3).restart();
-      }
-      
-      // 상위 핸들러가 있다면 호출 (예: 상세 보기 등)
-      if (onNodeDblClick) {
-        onNodeDblClick(node.data());
-      }
-    }
-  }, [cy, onNodeDblClick]);
-
   // 우클릭 핸들러
   const handleRightClick = useCallback((event: cytoscape.EventObject) => {
     if (!cy) return;
@@ -438,9 +408,8 @@ const GraphComponent: React.FC<GraphComponentProps> = ({
       cy.on('free', 'node', handleFree);
       cy.on('cxttap', 'node', handleRightClick);
       cy.on('tap', 'node', handleTap);
-      cy.on('dbltap', 'node', handleDblClick);
 
-      // Edge Events [추가]
+      // Edge Events
       cy.on('mouseover', 'edge', handleEdgeMouseOver);
       cy.on('mouseout', 'edge', handleEdgeMouseOut);
       cy.on('mousemove', 'edge', handleMouseMove); // 툴팁 위치 갱신용
@@ -456,7 +425,6 @@ const GraphComponent: React.FC<GraphComponentProps> = ({
           cy.off('free', 'node', handleFree);
           cy.off('cxttap', 'node', handleRightClick);
           cy.off('tap', 'node', handleTap);
-          cy.off('dbltap', 'node', handleDblClick);
           
           cy.off('mouseover', 'edge', handleEdgeMouseOver);
           cy.off('mouseout', 'edge', handleEdgeMouseOut);
@@ -504,7 +472,7 @@ const GraphComponent: React.FC<GraphComponentProps> = ({
     }
   }, [cy, selectedNodeIds, seedNodeId]);
 
-  // [추가] 데이터가 로드되거나 노드 수가 변경되었을 때 그래프를 중앙에 맞춤
+  // 데이터가 로드되거나 노드 수가 변경되었을 때 그래프를 중앙에 맞춤
   useEffect(() => {
     if (cy && graphData.nodes.length > 0) {
       // 렌더링 및 시뮬레이션 안정화를 위해 약간의 지연 후 실행
