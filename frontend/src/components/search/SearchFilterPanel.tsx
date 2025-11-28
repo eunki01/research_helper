@@ -111,7 +111,31 @@ const SearchFilterPanel: React.FC<SearchFilterPanelProps> = ({ filters, onChange
             ))}
           </div>
         </div>
+
+        {/* [추가] 검색 논문 수 슬라이더 */}
+        <div>
+          <div className="flex justify-between items-center mb-2">
+            <label className="text-sm font-medium text-gray-700">검색 논문 수</label>
+            <span className="text-sm font-bold text-blue-600">{filters.limit}개</span>
+          </div>
+          <input
+            type="range"
+            min="1"
+            max="10"
+            step="1"
+            value={filters.limit}
+            onChange={(e) => handleChange('limit', parseInt(e.target.value))}
+            className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
+          />
+          <div className="flex justify-between text-xs text-gray-400 mt-1">
+            <span>1</span>
+            <span>5</span>
+            <span>10</span>
+          </div>
+        </div>
       </div>
+
+      
 
       {/* 하단 옵션 */}
       <div className="mt-6 pt-4 border-t border-gray-100 flex items-center">

@@ -66,8 +66,6 @@ class SemanticScholarClient:
             "query": query,
             "limit": limit,
             "fields": ",".join(fields),
-            "openAccessPdf": "",
-            "publicationDateOrYear": "2022:",
             "sort": sort,
         }
 

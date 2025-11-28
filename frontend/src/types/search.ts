@@ -10,6 +10,7 @@ export interface SearchFilters {
   isOpenAccess: boolean;
   venues: string; // 콤마로 구분된 문자열 입력
   fieldsOfStudy: string[];
+  limit: number;
 }
 
 export const DEFAULT_FILTERS: SearchFilters = {
@@ -18,7 +19,8 @@ export const DEFAULT_FILTERS: SearchFilters = {
   publicationTypes: [],
   isOpenAccess: false,
   venues: '',
-  fieldsOfStudy: []
+  fieldsOfStudy: [],
+  limit: 5
 };
 
 export interface SearchQuery {

@@ -12,7 +12,7 @@ import type {
   VisualizationView,
   BreadcrumbItem
 } from '../types/visualization';
-import type { SearchMode } from '../types/search';
+import type { SearchMode, SearchFilters } from '../types/search';
 import type { Paper, Author } from '../types/paper';
 
 export class SearchService {
@@ -24,7 +24,8 @@ export class SearchService {
     query: string,
     mode: SearchMode,
     seedNodeId?: string,
-    parentBreadcrumbPath?: BreadcrumbItem[]
+    parentBreadcrumbPath?: BreadcrumbItem[],
+    filters?: SearchFilters
   ): VisualizationView {
     const nodes: PaperNode[] = response.references.map((ref, index) => ({
       id: ref.paperId,
@@ -70,7 +71,8 @@ export class SearchService {
         : [
             { id: 'home', title: '홈', timestamp: new Date().toISOString() },
             newBreadcrumbItem
-          ]
+          ],
+      filters: filters
     };
   }
 

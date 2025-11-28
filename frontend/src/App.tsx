@@ -31,11 +31,17 @@ const AppContent: React.FC = () => {
   }, []);
 
   // 검색 실행
-  const handleSearch = async (query: string, mode: SearchMode, selectedSeedPaper?: string, filters?: SearchFilters) => {
+  const handleSearch = async (
+    query: string, 
+    mode: SearchMode, 
+    selectedSeedPaper?: string, 
+    filters?: SearchFilters
+  ) => {
     setIsLoading(true);
     
     try {
       let response;
+      let view: any;
       
       // 1. 파일 기반 검색 (selectedSeedPaper 존재 시)
       if (selectedSeedPaper) {
@@ -57,19 +63,47 @@ const AppContent: React.FC = () => {
 
       // 2. 텍스트 기반 검색
       if (mode === 'external') {
-        response = await ApiService.searchExternal(query, 5, filters);
-        const view = SearchService.transformExternalToVisualizationView(
-          response, query, mode, undefined
+        // [수정] 필터의 limit 값을 사용 (없으면 기본값 5)
+        const limit = filters?.limit || 5;
+        response = await ApiService.searchExternal(query, limit, filters);
+        view = SearchService.transformExternalToVisualizationView(
+          response, query, mode, undefined, undefined, filters
         );
-        setVisualizationState({ currentViewIndex: 0, views: [view], maxViews: 20 });
       } else {
         response = await ApiService.searchInternal(query, 5, 0.7);
-        const view = SearchService.transformInternalToVisualizationView(
+        view = SearchService.transformInternalToVisualizationView(
           response, query, mode, undefined
         );
-        setVisualizationState({ currentViewIndex: 0, views: [view], maxViews: 20 });
       }
       
+      // [수정] 뷰 업데이트 로직 개선: 기존 히스토리 유지
+      setVisualizationState(prev => {
+        // 이미 시각화 페이지에 있고, 같은 모드에서 검색한 경우 -> 히스토리에 추가
+        if (currentPage === 'visualization' && prev.views.length > 0) {
+          // 현재 보고 있는 뷰 이후의 히스토리는 날리고 새 검색 결과 추가 (브라우저 동작 방식)
+          // 또는 그냥 뒤에 계속 추가 (히스토리 패널 방식) -> 여기선 Append 방식 사용
+          
+          const newViews = [...prev.views, view];
+          // 최대 개수 제한
+          if (newViews.length > prev.maxViews) {
+            newViews.shift();
+          }
+          
+          return {
+            ...prev,
+            currentViewIndex: newViews.length - 1, // 가장 최신 뷰로 이동
+            views: newViews
+          };
+        }
+        
+        // 홈에서 검색하거나 모드가 바뀐 경우 -> 초기화
+        return {
+          currentViewIndex: 0,
+          views: [view],
+          maxViews: 20
+        };
+      });
+
       setCurrentPage('visualization');
     } catch (error) {
       console.error('Search failed:', error);
@@ -178,12 +212,16 @@ const AppContent: React.FC = () => {
       );
     }
     
+    const currentView = visualizationState.views[visualizationState.currentViewIndex];
+
     return (
       <VisualizationPage
+        key={currentView?.id}
         views={visualizationState.views}
         currentViewIndex={visualizationState.currentViewIndex}
         onNodeClick={handleNodeClick}
         onNavigateToView={handleCarouselNavigation}
+        onSearch={handleSearch}
       />
     );
   };
@@ -193,7 +231,6 @@ const AppContent: React.FC = () => {
       visualizationState={visualizationState}
       onNavigateToView={handleBreadcrumbNavigation}
       onOpenLibrary={handleOpenLibrary}
-      // [수정] 시각화 페이지에서는 MainLayout의 사이드바를 숨김 (자체 3단 레이아웃 사용)
       showSidebar={false} 
     >
       {renderCurrentPage()}
