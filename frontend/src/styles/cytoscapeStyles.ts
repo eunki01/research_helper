@@ -1,38 +1,57 @@
 // src/styles/cytoscapeStyles.ts
 
-export const cytoscapeStyles = [
+// [추가] 스타일 인터페이스 직접 정의
+interface GraphStyle {
+  selector: string;
+  style: {
+    [key: string]: string | number | number[] | ((node: any) => string | number);
+  };
+}
+
+export const cytoscapeStyles: GraphStyle[] = [
   // 기본 노드 스타일 (반응형 크기)
   {
     selector: 'node',
     style: {
-      'label': 'data(label)',
+      'background-color': '#ffffff',
+      'border-width': 2,
+      'border-color': '#94a3b8', // slate-400
+      'label': 'data(displayLabel)', // [수정] 짧은 제목 사용
+      'text-valign': 'center',       // [수정] 수직 중앙 정렬 (노드 내부)
+      'text-halign': 'center',       // [수정] 수평 중앙 정렬
+      'text-wrap': 'wrap',           // [추가] 텍스트 줄바꿈 허용
+      'text-max-width': '80px',      // [추가] 텍스트 최대 너비 제한
+      'font-size': '10px',           // [수정] 내부 텍스트에 맞게 폰트 크기 조정 (필요시 data(fontSize) 대신 고정값 사용 고려)
+      'color': '#334155',            // 텍스트 색상
       'width': 'data(nodeSize)',
       'height': 'data(nodeSize)',
-      'font-size': 'data(fontSize)',
-      'text-valign': 'bottom',
-      'text-halign': 'center',
-      'text-margin-y': '5px',
-      'text-max-width': 'data(labelSize)',
-      'background-color': '#94a3b8',
-      'color': '#ffffff',
-      'text-outline-color': '#64748b',
-      'text-outline-width': '2px',
-      'transition-property': 'border-color, width, height, font-size',
-      'transition-duration': '0.3s'
+      'transition-property': 'background-color, border-color, border-width, width, height, shadow-opacity',
+      'transition-duration': 200
     }
   },
-  
+
+  // [추가] 고정된(Pinned) 노드 스타일
+  {
+    selector: 'node.pinned',
+    style: {
+      'background-color': '#eff6ff', // blue-50
+      'border-width': 4,
+      'border-color': '#2563eb', // blue-600
+      'color': '#1e40af', // blue-800
+      'font-weight': 'bold',
+      'z-index': 999
+    }
+  },
+
   // 기본 엣지 스타일
   {
     selector: 'edge',
     style: {
       'width': 2,
-      'line-color': '#cbd5e1',
-      'target-arrow-color': '#cbd5e1',
-      'target-arrow-shape': 'triangle',
       'curve-style': 'bezier',
-      'line-cap': 'round',
-      'control-point-step-size': 20
+      'target-arrow-shape': 'none', // 기본 화살표 없음
+      'line-color': '#cbd5e1',
+      'target-arrow-color': '#cbd5e1'
     }
   },
   
@@ -61,8 +80,12 @@ export const cytoscapeStyles = [
   {
     selector: 'edge[type="citation"]',
     style: {
+      'width': 3,
+      'line-style': 'solid',
       'line-color': '#2563eb',
-      'target-arrow-color': '#2563eb'
+      'target-arrow-color': '#2563eb',
+      'target-arrow-shape': 'triangle', // 화살표 모양 (필수)
+      'arrow-scale': 1.2
     }
   },
   
@@ -70,8 +93,11 @@ export const cytoscapeStyles = [
   {
     selector: 'edge[type="similarity"]',
     style: {
-      'line-color': '#16a34a',
-      'target-arrow-color': '#16a34a'
+      'width': 'mapData(score, 0, 1, 1, 5)', // 유사도(0~1)에 따라 1px ~ 5px
+      'line-style': 'dashed',
+      'line-dash-pattern': [6, 3], // 점선 패턴
+      'line-color': 'mapData(score, 0, 1, #cbd5e1, #059669)',
+      'target-arrow-shape': 'none'
     }
   },
   

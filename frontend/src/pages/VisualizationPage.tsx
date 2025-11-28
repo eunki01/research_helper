@@ -100,8 +100,9 @@ const VisualizationPage: React.FC<VisualizationPageProps> = ({
           id: edgeId,
           source: type === 'citation' ? paper.paperId : sourceId, // 인용: 타겟 -> 소스, 참고: 소스 -> 타겟
           target: type === 'citation' ? sourceId : paper.paperId,
-          type: 'similarity', // 혹은 'citation'으로 구분 가능
-          similarity: 1.0 // 관계가 확실하므로 1.0
+          // [수정] 엣지 타입을 'citation'으로 변경 (기존 'similarity'에서 수정)
+          type: 'citation', 
+          similarity: 1.0 // 관계가 확실하므로 1.0 (스타일에는 영향 없음)
         });
       });
 
@@ -235,28 +236,44 @@ const VisualizationPage: React.FC<VisualizationPageProps> = ({
           </div>
 
           {/* 툴팁 (Hover 시 표시) */}
-          <div className="absolute bottom-full right-0 mb-3 w-64 bg-white rounded-xl shadow-xl border border-gray-200 p-4 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none transform translate-y-2 group-hover:translate-y-0">
-            <h4 className="font-bold text-gray-800 mb-2 flex items-center">
-              <span className="mr-1">💡</span> 그래프 사용법
+          <div className="absolute bottom-full right-0 mb-3 w-72 bg-white rounded-xl shadow-xl border border-gray-200 p-5 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none transform translate-y-2 group-hover:translate-y-0">
+            <h4 className="font-bold text-gray-800 mb-3 flex items-center border-b pb-2">
+              <span className="mr-1">💡</span> 그래프 조작 가이드
             </h4>
-            <ul className="text-sm text-gray-600 space-y-2">
+            <ul className="text-sm text-gray-600 space-y-3">
               <li className="flex items-start">
-                <span className="font-semibold text-blue-600 min-w-[50px]">좌클릭</span>
-                <span>논문 상세 정보 확인 및 채팅 추가/해제</span>
+                <span className="font-semibold text-blue-600 min-w-[60px]">좌클릭</span>
+                <span>논문 상세 정보 확인</span>
               </li>
               <li className="flex items-start">
-                <span className="font-semibold text-red-500 min-w-[50px]">우클릭</span>
-                <span>검색 시드(Seed) 논문 지정 (이후 사이드바에서 검색 실행)</span>
+                <span className="font-semibold text-gray-700 min-w-[60px]">드래그</span>
+                <span>노드 위치 이동 및 <strong className="text-red-500">위치 고정(Pin)</strong></span>
               </li>
               <li className="flex items-start">
-                <span className="font-semibold text-gray-700 min-w-[50px]">드래그</span>
-                <span>노드 위치 이동 및 그래프 탐색</span>
+                <span className="font-semibold text-gray-700 min-w-[60px]">더블클릭</span>
+                <span>노드 고정 해제 (다시 움직임)</span>
               </li>
               <li className="flex items-start">
-                <span className="font-semibold text-gray-700 min-w-[50px]">휠</span>
-                <span>그래프 확대/축소 (Zoom)</span>
+                <span className="font-semibold text-red-500 min-w-[60px]">우클릭</span>
+                <span>검색 시드(Seed) 지정</span>
               </li>
             </ul>
+            
+            <h4 className="font-bold text-gray-800 mt-4 mb-2 text-xs uppercase tracking-wide">범례 (Legend)</h4>
+            <div className="space-y-2 text-xs text-gray-600">
+              <div className="flex items-center">
+                <span className="w-8 h-0 border-t-2 border-slate-500 mr-2"></span>
+                <span>인용 관계 (Solid)</span>
+              </div>
+              <div className="flex items-center">
+                <span className="w-8 h-0 border-t-2 border-slate-400 border-dashed mr-2"></span>
+                <span>유사도 관계 (Dashed)</span>
+              </div>
+              <div className="flex items-center">
+                <span className="w-3 h-3 rounded-full border-2 border-red-500 mr-2"></span>
+                <span>고정된 노드 (Pinned)</span>
+              </div>
+            </div>
             {/* 말풍선 꼬리 */}
             <div className="absolute bottom-0 right-3 transform translate-y-1/2 rotate-45 w-3 h-3 bg-white border-r border-b border-gray-200"></div>
           </div>
