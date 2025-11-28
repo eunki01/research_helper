@@ -108,7 +108,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
 
         {/* 우측 버튼 그룹 */}
         <div className="absolute right-3 flex items-center space-x-2">
-          {/* [추가] 필터 버튼 (외부 검색일 때만 표시) */}
+          {/*  필터 버튼 (외부 검색일 때만 표시) */}
           {!searchFile && currentMode === 'external' && (
             <button
               type="button"
@@ -166,7 +166,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
         </div>
       </form>
 
-      {/* [추가] 필터 패널 렌더링 */}
+      {/* 필터 패널 렌더링 */}
       {isFilterOpen && currentMode === 'external' && (
         <SearchFilterPanel 
           filters={filters} 

@@ -54,3 +54,6 @@ class UpdateDocumentRequest(BaseModel):
     title: Optional[str] = None
     authors: Optional[str] = None
     year: Optional[int] = None
+    venue: Optional[str] = None
+    citation_count: Optional[int] = None
+    open_access_pdf: Optional[str] = None

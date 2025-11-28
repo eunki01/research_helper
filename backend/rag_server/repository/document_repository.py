@@ -82,7 +82,7 @@ class DocumentRepository:
         limit: int = None, 
         distance_threshold: float = None,
         target_titles: Optional[List[str]] = None,
-        exclude_titles: Optional[List[str]] = None, # [추가] 제외할 제목 목록
+        exclude_titles: Optional[List[str]] = None, # 제외할 제목 목록
         text_query: str = None # 텍스트 검색어 (Hybrid Search용)
     ) -> List[SimilarityResult]:
         if limit is None: limit = settings.DEFAULT_SEARCH_LIMIT

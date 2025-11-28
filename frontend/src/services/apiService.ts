@@ -86,7 +86,7 @@ export class ApiService {
     return response.json();
   }
 
-  // [추가] 외부 논문 라이브러리 저장
+  // 외부 논문 라이브러리 저장
   static async savePaperToLibrary(paper: LibraryPaper): Promise<void> {
     // LibraryPaper 타입을 백엔드 SavePaperRequest 스키마에 맞춰 변환
     // (LibraryPaper의 id는 외부 검색 시 paperId 값을 가지고 있음)
@@ -267,6 +267,10 @@ export class ApiService {
       if (metadata.title) formData.append('title', metadata.title);
       if (metadata.authors) formData.append('authors', metadata.authors);
       if (metadata.year) formData.append('year', metadata.year.toString());
+      if (metadata.venue) formData.append('venue', metadata.venue);
+      if (metadata.citationCount !== undefined) formData.append('citation_count', metadata.citationCount.toString()); // 백엔드 스네이크 케이스 확인
+      if (metadata.tldr) formData.append('tldr', metadata.tldr);
+      if (metadata.openAccessPdf) formData.append('open_access_pdf', metadata.openAccessPdf);
     }
 
     const response = await fetch(`${RAG_SERVER_URL}/upload`, {

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { createPortal } from 'react-dom'; // [추가] Portal 사용을 위한 import
+import { createPortal } from 'react-dom';
 import ApiService from '../../services/apiService';
 import type { LibraryPaper } from '../../types/paper';
 import PaperUploadForm from './PaperUploadForm';

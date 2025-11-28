@@ -149,11 +149,11 @@ class DocumentService:
 
         distance_threshold_value = (1.0 - similarity_threshold) if similarity_threshold is not None else None
 
-        # 2. [변경] Over-fetching: 요청된 limit보다 더 많은 청크를 검색 (예: 4배)
+        # 2. Over-fetching: 요청된 limit보다 더 많은 청크를 검색 (예: 4배)
         # 이유: 자기 자신의 청크가 상위권을 독점하는 것을 방지하고, 다양한 문서를 확보하기 위함
         fetch_limit = (limit or 5) * 4
         
-        # 3. [변경] exclude_titles 제거: 자기 자신도 결과에 포함시켜야 시각화 그래프에 노드가 생성됨
+        # 3. exclude_titles 제거: 자기 자신도 결과에 포함시켜야 시각화 그래프에 노드가 생성됨
         raw_results = self.repository.search_by_vector(
             query_vector=query_vector,
             limit=fetch_limit, 

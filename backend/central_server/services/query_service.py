@@ -212,7 +212,6 @@ class QueryService:
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"외부 검색 처리 중 오류 발생: {str(e)}")
 
-    # [추가] 인용 논문 조회
     async def get_citations(self, paper_id: str, limit: int = 10) -> List[ExternalReference]:
         try:
             response = await self.http_client.get(
@@ -226,7 +225,6 @@ class QueryService:
             logger.error(f"Citations fetch failed: {e}")
             raise HTTPException(status_code=500, detail=f"인용 논문 조회 실패: {str(e)}")
 
-    # [추가] 참고 문헌 조회
     async def get_references(self, paper_id: str, limit: int = 10) -> List[ExternalReference]:
         try:
             response = await self.http_client.get(

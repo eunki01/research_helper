@@ -18,6 +18,10 @@ const PaperEditModal: React.FC<PaperEditModalProps> = ({
   const [title, setTitle] = useState('');
   const [authors, setAuthors] = useState('');
   const [year, setYear] = useState('');
+  const [venue, setVenue] = useState('');
+  const [citationCount, setCitationCount] = useState('');
+  const [tldr, setTldr] = useState('');
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -41,6 +45,10 @@ const PaperEditModal: React.FC<PaperEditModalProps> = ({
         setYear('');
       }
       
+      setVenue(paper.venue || '');
+      setCitationCount(paper.citationCount !== undefined ? paper.citationCount.toString() : '');
+      setTldr(paper.tldr || '');
+
       setError(null);
     }
   }, [isOpen, paper]);
@@ -60,7 +68,10 @@ const PaperEditModal: React.FC<PaperEditModalProps> = ({
       await ApiService.updatePaper(paper.id, {
         title: title.trim(),
         authors: authors.trim(),
-        year: year ? parseInt(year) : undefined
+        year: year ? parseInt(year) : undefined,
+        venue: venue || undefined,
+        citationCount: citationCount ? parseInt(citationCount) : undefined,
+        tldr: tldr || undefined
       });
 
       onUpdateSuccess({ 
@@ -130,6 +141,38 @@ const PaperEditModal: React.FC<PaperEditModalProps> = ({
               placeholder="예: 2024"
               min="1900"
               max={new Date().getFullYear() + 1}
+            />
+          </div>
+
+          {/* [추가] 상세 정보 입력 섹션 */}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">저널/학회</label>
+              <input
+                type="text"
+                value={venue}
+                onChange={(e) => setVenue(e.target.value)}
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">인용 횟수</label>
+              <input
+                type="number"
+                value={citationCount}
+                onChange={(e) => setCitationCount(e.target.value)}
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">요약 (TL;DR)</label>
+            <textarea
+              value={tldr}
+              onChange={(e) => setTldr(e.target.value)}
+              rows={2}
+              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none resize-none"
             />
           </div>
 

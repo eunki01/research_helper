@@ -90,7 +90,7 @@ const ExternalSidebar: React.FC<ExternalSidebarProps> = ({
             </button>
           </div>
 
-          {/* [추가] 라이브러리 저장 버튼 */}
+          {/* 라이브러리 저장 버튼 */}
           <button
             onClick={handleSaveToLibrary}
             disabled={isSaving || isLoading || !isSaveable}

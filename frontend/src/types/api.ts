@@ -89,6 +89,10 @@ export interface PaperMetadata {
   title?: string;
   authors?: string;
   year?: number;
+  venue?: string;
+  citationCount?: number;
+  tldr?: string;
+  openAccessPdf?: string;
 }
 
 

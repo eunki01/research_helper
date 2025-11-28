@@ -12,6 +12,10 @@ const PaperUploadForm: React.FC<PaperUploadFormProps> = ({ onSuccess, onCancel }
   const [title, setTitle] = useState('');
   const [authors, setAuthors] = useState('');
   const [year, setYear] = useState('');
+  const [venue, setVenue] = useState('');
+  const [citationCount, setCitationCount] = useState<string>('');
+  const [tldr, setTldr] = useState('');
+
   const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -43,7 +47,10 @@ const PaperUploadForm: React.FC<PaperUploadFormProps> = ({ onSuccess, onCancel }
       await ApiService.uploadFile(file, {
         title,
         authors,
-        year: year ? parseInt(year) : undefined
+        year: year ? parseInt(year) : undefined,
+        venue: venue || undefined,
+        citationCount: citationCount ? parseInt(citationCount) : undefined,
+        tldr: tldr || undefined
       });
       
       // 성공 시 부모에게 알림
@@ -148,6 +155,41 @@ const PaperUploadForm: React.FC<PaperUploadFormProps> = ({ onSuccess, onCancel }
                             disabled={isUploading}
                         />
                     </div>
+                </div>
+
+                {/* [추가] 상세 정보 입력 섹션 */}
+                <div className="grid grid-cols-2 gap-4">
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">저널/학회 (Venue)</label>
+                    <input
+                    type="text"
+                    value={venue}
+                    onChange={(e) => setVenue(e.target.value)}
+                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                    placeholder="예: Nature"
+                    />
+                </div>
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">인용 횟수</label>
+                    <input
+                    type="number"
+                    value={citationCount}
+                    onChange={(e) => setCitationCount(e.target.value)}
+                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                    placeholder="0"
+                    />
+                </div>
+                </div>
+
+                <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">요약 (TL;DR)</label>
+                <textarea
+                    value={tldr}
+                    onChange={(e) => setTldr(e.target.value)}
+                    rows={2}
+                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none resize-none"
+                    placeholder="논문 핵심 요약"
+                />
                 </div>
 
                 {error && (
