@@ -69,6 +69,10 @@ export interface InternalDocumentReference {
   authors?: string[];
   publicationDate?: string;
   chunks: ChunkReference[];
+  venue?: string;
+  citationCount?: number;
+  tldr?: string;
+  openAccessPdf?: string;
 }
 
 export interface InternalSearchResponse {

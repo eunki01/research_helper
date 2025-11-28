@@ -43,6 +43,10 @@ class InternalDocumentReference(BaseModel):
     title: str = Field(..., description="문서의 제목 (주로 파일명)")
     authors: Optional[List[str]] = Field(None, description="문서의 저자 목록")
     publicationDate: Optional[str] = Field(None, description="문서의 발행일")
+    venue: Optional[str] = Field(None, description="저널 또는 학회명")
+    citationCount: Optional[int] = Field(None, description="피인용 횟수")
+    tldr: Optional[str] = Field(None, description="AI 요약")
+    openAccessPdf: Optional[str] = Field(None, description="PDF 링크")
     chunks: List[ChunkReference] = Field(..., description="문서 내에서 검색된 관련 청크 목록")
 
 class InternalSearchResponse(BaseModel):

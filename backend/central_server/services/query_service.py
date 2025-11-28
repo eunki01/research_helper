@@ -63,9 +63,12 @@ class QueryService:
                     grouped_references[doc_id]["meta"] = {
                         "title": doc_chunk.get('title'),
                         "authors": authors,
-                        "publication_date": publication_date
+                        "publication_date": publication_date,
+                        "venue": doc_chunk.get('venue'),
+                        "citation_count": doc_chunk.get('citation_count'), 
+                        "tldr": doc_chunk.get('tldr'),
+                        "open_access_pdf": doc_chunk.get('open_access_pdf')
                     }
-
             # 그룹화된 데이터를 최종 응답 모델 리스트로 변환
             references = []
             for doc_id, data in grouped_references.items():
@@ -75,7 +78,11 @@ class QueryService:
                         title=data["meta"]["title"],
                         authors=data["meta"]["authors"],
                         publicationDate=data["meta"]["publication_date"],
-                        chunks=sorted(data["chunks"], key=lambda c: c.chunk_index) # 청크 순서대로 정렬
+                        venue=data["meta"]["venue"],
+                        citationCount=data["meta"]["citation_count"],
+                        tldr=data["meta"]["tldr"],
+                        openAccessPdf=data["meta"]["open_access_pdf"],
+                        chunks=sorted(data["chunks"], key=lambda c: c.chunk_index), # 청크 순서대로 정렬
                     )
                 )
             
@@ -131,7 +138,11 @@ class QueryService:
                     grouped_references[doc_id]["meta"] = {
                         "title": doc_chunk.get('title'),
                         "authors": authors,
-                        "publication_date": publication_date
+                        "publication_date": publication_date,
+                        "venue": doc_chunk.get('venue'),
+                        "citation_count": doc_chunk.get('citation_count'), 
+                        "tldr": doc_chunk.get('tldr'),
+                        "open_access_pdf": doc_chunk.get('open_access_pdf')
                     }
 
             references = []
@@ -142,6 +153,10 @@ class QueryService:
                         title=data["meta"]["title"],
                         authors=data["meta"]["authors"],
                         publicationDate=data["meta"]["publication_date"],
+                        venue=data["meta"]["venue"],
+                        citationCount=data["meta"]["citation_count"],
+                        tldr=data["meta"]["tldr"],
+                        openAccessPdf=data["meta"]["open_access_pdf"],
                         chunks=sorted(data["chunks"], key=lambda c: c.chunk_index)
                     )
                 )

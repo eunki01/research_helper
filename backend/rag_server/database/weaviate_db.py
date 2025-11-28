@@ -50,6 +50,10 @@ class WeaviateManager:
                         Property(name="published", data_type=DataType.DATE),
                         Property(name="doi", data_type=DataType.TEXT),
                         Property(name="chunk_index", data_type=DataType.NUMBER),
+                        Property(name="venue", data_type=DataType.TEXT),
+                        Property(name="citation_count", data_type=DataType.INT), # 정수형
+                        Property(name="tldr", data_type=DataType.TEXT),
+                        Property(name="open_access_pdf", data_type=DataType.TEXT),
                     ]
                 )
                 logger.info(f"Collection '{self.collection_name}' created successfully.")

@@ -170,11 +170,11 @@ export class SearchService {
       title: ref.title,
       authors,
       publicationDate: ref.publicationDate,
-      venue: undefined,
-      citationCount: undefined,
+      venue: ref.venue,
+      citationCount: ref.citationCount,
       abstract,
-      openAccessPdf: undefined,
-      tldr: undefined,
+      openAccessPdf: ref.openAccessPdf,
+      tldr: ref.tldr,
       fieldsOfStudy: undefined,
       type: 'paper'
     };

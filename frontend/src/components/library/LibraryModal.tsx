@@ -37,6 +37,10 @@ const LibraryModal: React.FC<LibraryModalProps> = ({
         publicationDate: doc.published,
         abstract: doc.content,
         uploadedAt: doc.published,
+        venue: doc.venue,
+        citationCount: doc.citation_count,
+        tldr: doc.tldr,
+        openAccessPdf: doc.open_access_pdf,
         isSeed: false
       }));
 

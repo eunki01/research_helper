@@ -43,7 +43,10 @@ const LibraryPage: React.FC<LibraryPageProps> = ({
         publicationDate: doc.published,
         abstract: doc.content,
         uploadedAt: doc.published || new Date().toISOString(),
-        fieldsOfStudy: [], // 현재 백엔드에서 지원하지 않음
+        venue: doc.venue,
+        citationCount: doc.citation_count,
+        tldr: doc.tldr,
+        openAccessPdf: doc.open_access_pdf,
         isSeed: false
       }));
 
