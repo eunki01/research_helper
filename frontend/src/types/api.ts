@@ -1,14 +1,32 @@
 // API 명세서 기반 타입 정의
 
+// ==================== 채팅 관련 ====================
+export interface Message {
+  role: 'user' | 'assistant' | 'system';
+  content: string;
+}
+
+export interface ChatRequest {
+  query: string;
+  history: Message[];
+  target_titles?: string[];
+}
+
 // ==================== 외부 검색 관련 ====================
 export interface ExternalSearchRequest {
   query_text: string;
   limit?: number;
+  year?: string;
+  publication_types?: string[];
+  open_access_pdf?: boolean;
+  venue?: string[];
+  fields_of_study?: string[];
 }
 
 export interface ExternalReference {
   paperId: string;
   title: string;
+  abstract?: string;
   openAccessPdf?: string;
   authors?: string[];
   publicationDate?: string;
@@ -27,7 +45,7 @@ export interface SimilarityLink {
 
 export interface ExternalSearchResponse {
   query: string;
-  answer: string;
+  answer?: string;
   references: ExternalReference[];
   similarity_graph: SimilarityLink[];
 }
@@ -51,11 +69,15 @@ export interface InternalDocumentReference {
   authors?: string[];
   publicationDate?: string;
   chunks: ChunkReference[];
+  venue?: string;
+  citationCount?: number;
+  tldr?: string;
+  openAccessPdf?: string;
 }
 
 export interface InternalSearchResponse {
   query: string;
-  answer: string;
+  answer?: string;
   references: InternalDocumentReference[];
   similarity_graph: SimilarityLink[];
 }
@@ -66,6 +88,17 @@ export interface UploadResponse {
   message: string;
   upload_timestamp: string;
 }
+
+export interface PaperMetadata {
+  title?: string;
+  authors?: string;
+  year?: number;
+  venue?: string;
+  citationCount?: number;
+  tldr?: string;
+  openAccessPdf?: string;
+}
+
 
 // ==================== Semantic Scholar API 관련 ====================
 export interface SearchRequest {
@@ -101,5 +134,4 @@ export interface SemanticScholarResult {
   venue?: string;
   fieldsOfStudy?: string[];
 }
-
 

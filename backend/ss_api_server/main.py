@@ -50,7 +50,12 @@ async def search_documents(
         # Semantic Scholar API를 통한 유사도 검색 수행
         results = searcher.search_by_text_via_api(
             query_text=request.query_text,
-            limit=request.limit
+            limit=request.limit,
+            year=request.year,
+            publication_types=request.publication_types,
+            open_access_pdf=request.open_access_pdf,
+            venue=request.venue,
+            fields_of_study=request.fields_of_study
         )
         
         logger.info(f"텍스트 검색 완료: {len(results)}개 결과")
@@ -88,6 +93,42 @@ async def get_recommended_papers(
     except Exception as e:
         logger.error(f"추천 논문 검색 실패: {str(e)}")
         raise HTTPException(status_code=500, detail="추천 논문 처리 중 오류가 발생했습니다")
+
+@app.get("/citations/{paper_id}", response_model=List[SemanticScholarResult])
+async def get_citations(
+    paper_id: str,
+    limit: int = 10,
+    searcher: SimilaritySearcher = Depends(get_similarity_searcher)
+):
+    """
+    특정 논문을 인용한 논문 목록을 조회합니다.
+    """
+    try:
+        results = searcher.get_citations_by_paper_id(paper_id, limit)
+        return results
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Citations lookup failed: {str(e)}")
+        raise HTTPException(status_code=500, detail="Internal Server Error")
+
+@app.get("/references/{paper_id}", response_model=List[SemanticScholarResult])
+async def get_references(
+    paper_id: str,
+    limit: int = 10,
+    searcher: SimilaritySearcher = Depends(get_similarity_searcher)
+):
+    """
+    특정 논문이 참고한 문헌 목록을 조회합니다.
+    """
+    try:
+        results = searcher.get_references_by_paper_id(paper_id, limit)
+        return results
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"References lookup failed: {str(e)}")
+        raise HTTPException(status_code=500, detail="Internal Server Error")
 
 if __name__ == "__main__":
     import uvicorn

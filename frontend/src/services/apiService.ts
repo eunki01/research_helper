@@ -2,10 +2,16 @@
 import type {
   ExternalSearchRequest,
   ExternalSearchResponse,
+  ExternalReference,
   InternalSearchRequest,
   InternalSearchResponse,
-  UploadResponse
+  UploadResponse,
+  ChatRequest,
+  Message,
+  PaperMetadata,
 } from '../types/api';
+import type { LibraryPaper } from '../types/paper';
+import type { SearchFilters } from '../types/search';
 
 // 환경 변수에서 API URL 가져오기
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
@@ -17,11 +23,28 @@ export class ApiService {
    */
   static async searchExternal(
     query: string,
-    limit: number = 5
+    limit: number = 5,
+    filters?: SearchFilters
   ): Promise<ExternalSearchResponse> {
+    // 1. UI 필터 상태를 API 요청 포맷으로 변환
+    let yearRange: string | undefined;
+    if (filters) {
+      if (filters.startYear && filters.endYear) yearRange = `${filters.startYear}-${filters.endYear}`;
+      else if (filters.startYear) yearRange = `${filters.startYear}-`;
+      else if (filters.endYear) yearRange = `-${filters.endYear}`;
+    }
+
     const request: ExternalSearchRequest = {
       query_text: query,
-      limit
+      limit,
+      // 변환된 필터 적용
+      ...(filters && {
+        year: yearRange,
+        publication_types: filters.publicationTypes.length > 0 ? filters.publicationTypes : [],
+        open_access_pdf: filters.isOpenAccess || false,
+        venue: filters.venues ? filters.venues.split(',').map(v => v.trim()).filter(v => v) : [],
+        fields_of_study: filters.fieldsOfStudy.length > 0 ? filters.fieldsOfStudy : []
+      })
     };
 
     const response = await fetch(`${API_BASE_URL}/search/external`, {
@@ -37,6 +60,58 @@ export class ApiService {
     }
 
     return response.json();
+  }
+
+  /**
+   * 인용 논문 조회 (Citations)
+   */
+  static async getCitations(paperId: string, limit: number = 10): Promise<ExternalReference[]> {
+    const response = await fetch(`${API_BASE_URL}/search/citations/${paperId}?limit=${limit}`);
+    
+    if (!response.ok) {
+      throw new Error(`인용 논문 조회 실패: ${response.status} ${response.statusText}`);
+    }
+    return response.json();
+  }
+
+  /**
+   * 참고 문헌 조회 (References)
+   */
+  static async getReferences(paperId: string, limit: number = 10): Promise<ExternalReference[]> {
+    const response = await fetch(`${API_BASE_URL}/search/references/${paperId}?limit=${limit}`);
+    
+    if (!response.ok) {
+      throw new Error(`참고 문헌 조회 실패: ${response.status} ${response.statusText}`);
+    }
+    return response.json();
+  }
+
+  // 외부 논문 라이브러리 저장
+  static async savePaperToLibrary(paper: LibraryPaper): Promise<void> {
+    // LibraryPaper 타입을 백엔드 SavePaperRequest 스키마에 맞춰 변환
+    // (LibraryPaper의 id는 외부 검색 시 paperId 값을 가지고 있음)
+    const payload = {
+      paperId: paper.id, 
+      title: paper.title,
+      authors: paper.authors.map(a => a.name),
+      publicationDate: paper.publicationDate,
+      abstract: paper.abstract,
+      openAccessPdf: paper.openAccessPdf,
+      venue: paper.venue,
+      citationCount: paper.citationCount,
+      tldr: paper.tldr
+    };
+
+    const response = await fetch(`${API_BASE_URL}/library/save`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.detail || `저장 실패: ${response.status}`);
+    }
   }
 
   /**
@@ -69,11 +144,134 @@ export class ApiService {
   }
 
   /**
+   * 문서 ID 기반 유사도 검색
+   */
+  static async searchSimilarity(docId: string, limit: number = 5): Promise<InternalSearchResponse> {
+    const response = await fetch(`${API_BASE_URL}/search/similarity`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ doc_id: docId, limit }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`유사 문서 검색 실패: ${response.status}`);
+    }
+    return response.json();
+  }
+
+
+  /**
+   * 채팅 스트리밍
+   * Generator를 사용하여 스트리밍 데이터를 실시간으로 yield 합니다.
+   */
+  static async *chatStream(
+    query: string,
+    history: Message[],
+    targetTitles?: string[]
+  ): AsyncGenerator<string, void, unknown> {
+    const request: ChatRequest = {
+      query,
+      history,
+      target_titles: targetTitles
+    };
+
+    const response = await fetch(`${API_BASE_URL}/chat/stream`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(request),
+    });
+
+    if (!response.ok) {
+      throw new Error(`채팅 요청 실패: ${response.status} ${response.statusText}`);
+    }
+
+    if (!response.body) {
+      throw new Error('응답 바디가 비어있습니다.');
+    }
+
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder('utf-8');
+
+    try {
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        
+        // 청크 디코딩 후 반환
+        const chunk = decoder.decode(value, { stream: true });
+        yield chunk;
+      }
+    } finally {
+      reader.releaseLock();
+    }
+  }
+
+  /**
+   * 업로드된 문서 목록 조회
+   */
+  static async getDocuments(): Promise<any[]> {
+    const response = await fetch(`${RAG_SERVER_URL}/documents?limit=50`);
+
+    if (!response.ok) {
+      throw new Error(`문서 목록 조회 실패: ${response.status} ${response.statusText}`);
+    }
+
+    return response.json();
+  }
+
+  /**
+   * 문서 메타데이터 수정
+   */
+  static async updatePaper(docId: string, metadata: PaperMetadata): Promise<{ message: string; id: string }> {
+    const response = await fetch(`${RAG_SERVER_URL}/documents/${docId}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(metadata),
+    });
+
+    if (!response.ok) {
+      throw new Error(`문서 수정 실패: ${response.status} ${response.statusText}`);
+    }
+
+    return response.json();
+  }
+
+  /**
+   * 문서 삭제
+   */
+  static async deletePaper(docId: string): Promise<{ message: string; id: string }> {
+    const response = await fetch(`${RAG_SERVER_URL}/documents/${docId}`, {
+      method: 'DELETE',
+    });
+
+    if (!response.ok) {
+      throw new Error(`문서 삭제 실패: ${response.status} ${response.statusText}`);
+    }
+
+    return response.json();
+  }
+
+  /**
    * 파일 업로드
    */
-  static async uploadFile(file: File): Promise<UploadResponse> {
+  static async uploadFile(file: File, metadata?: PaperMetadata): Promise<UploadResponse> {
     const formData = new FormData();
     formData.append('file', file);
+
+    // 메타데이터가 존재하면 FormData에 추가
+    if (metadata) {
+      if (metadata.title) formData.append('title', metadata.title);
+      if (metadata.authors) formData.append('authors', metadata.authors);
+      if (metadata.year) formData.append('year', metadata.year.toString());
+      if (metadata.venue) formData.append('venue', metadata.venue);
+      if (metadata.citationCount !== undefined) formData.append('citation_count', metadata.citationCount.toString()); // 백엔드 스네이크 케이스 확인
+      if (metadata.tldr) formData.append('tldr', metadata.tldr);
+      if (metadata.openAccessPdf) formData.append('open_access_pdf', metadata.openAccessPdf);
+    }
 
     const response = await fetch(`${RAG_SERVER_URL}/upload`, {
       method: 'POST',

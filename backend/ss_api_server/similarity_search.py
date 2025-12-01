@@ -1,5 +1,5 @@
 # similarity_search.py
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 import logging
 from fastapi import HTTPException, Depends
 from models import SemanticScholarResult, EmbeddingResult, TldrResult
@@ -44,7 +44,16 @@ class SimilaritySearcher:
             fieldsOfStudy=paper.get("fieldsOfStudy")
         )
 
-    def search_by_text_via_api(self, query_text: str, limit: int) -> List[SemanticScholarResult]:
+    def search_by_text_via_api(
+        self, 
+        query_text: str, 
+        limit: int,
+        year: Optional[str] = None,
+        publication_types: Optional[List[str]] = None,
+        open_access_pdf: Optional[bool] = None,
+        venue: Optional[List[str]] = None,
+        fields_of_study: Optional[List[str]] = None
+    ) -> List[SemanticScholarResult]:
         """
         Semantic Scholar API를 사용하여 텍스트 기반 논문 검색을 수행합니다.
         """
@@ -61,7 +70,12 @@ class SimilaritySearcher:
                 query=query_text,
                 limit=limit,
                 fields=search_fields,
-                sort=sort_order
+                sort=sort_order,
+                year=year,
+                publication_types=publication_types,
+                open_access_pdf=open_access_pdf,
+                venue=venue,
+                fields_of_study=fields_of_study
             )
 
             # 2. 결과 파싱
@@ -109,6 +123,77 @@ class SimilaritySearcher:
             # 파싱 과정 등에서 발생한 예외 처리
             logger.error(f"API 추천 검색 실패: {str(e)}", exc_info=True)
             raise HTTPException(status_code=500, detail=f"추천 논문 처리 중 오류 발생: {str(e)}")
+
+    def get_citations_by_paper_id(self, paper_id: str, limit: int) -> List[SemanticScholarResult]:
+        """
+        특정 논문의 피인용 논문(Citations) 목록 조회
+        """
+        
+        fields = [
+            "title", "abstract", "authors", "year", "url", "openAccessPdf", 
+            "citationCount", "venue", "fieldsOfStudy"
+        ]
+        
+        try:
+            citations_data = self.client.get_citations(
+                paper_id=paper_id,
+                limit=limit,
+                fields=fields
+            )
+
+            results = []
+            for item in citations_data:
+                paper = item.get('citingPaper')
+                if paper and paper.get('paperId'): # paperId가 있는 경우만 유효
+                    # publicationDate가 없고 year만 있는 경우가 많음 -> 변환
+                    if not paper.get('publicationDate') and paper.get('year'):
+                        paper['publicationDate'] = str(paper['year'])
+                    
+                    results.append(self._parse_paper_data(paper))
+
+            logger.info(f"피인용 논문 조회 완료: {len(results)}개")
+            return results
+            
+        except HTTPException:
+             raise
+        except Exception as e:
+            logger.error(f"피인용 논문 조회 실패: {str(e)}", exc_info=True)
+            raise HTTPException(status_code=500, detail=f"피인용 논문 처리 중 오류 발생: {str(e)}")
+
+    def get_references_by_paper_id(self, paper_id: str, limit: int) -> List[SemanticScholarResult]:
+        """
+        특정 논문의 참고 문헌(References) 목록 조회
+        """
+        fields = [
+            "title", "abstract", "authors", "year", "url", "openAccessPdf", 
+            "citationCount", "venue", "fieldsOfStudy"
+        ]
+        
+        try:
+            references_data = self.client.get_references(
+                paper_id=paper_id,
+                limit=limit,
+                fields=fields
+            )
+
+            # 응답 데이터 구조: [{'citedPaper': {paperId, title, ...}}, ...]
+            results = []
+            for item in references_data:
+                paper = item.get('citedPaper')
+                if paper and paper.get('paperId'):
+                    if not paper.get('publicationDate') and paper.get('year'):
+                        paper['publicationDate'] = str(paper['year'])
+                    
+                    results.append(self._parse_paper_data(paper))
+
+            logger.info(f"참고 문헌 조회 완료: {len(results)}개")
+            return results
+            
+        except HTTPException:
+             raise
+        except Exception as e:
+            logger.error(f"참고 문헌 조회 실패: {str(e)}", exc_info=True)
+            raise HTTPException(status_code=500, detail=f"참고 문헌 처리 중 오류 발생: {str(e)}")
 
 # --- 팩토리 함수 ---
 def get_similarity_searcher(

@@ -7,6 +7,7 @@ from core.config import settings
 
 class SimilarityResult(BaseModel):
     """유사도 검색 결과로 반환되는 단일 청크 정보를 담는 모델"""
+    id: Optional[str] = None
     title: str = Field(..., description="원본 문서의 제목")
     content: str = Field(..., description="청크의 텍스트 원문")
     authors: str = Field(..., description="원본 문서의 저자")
@@ -16,6 +17,10 @@ class SimilarityResult(BaseModel):
     distance: float = Field(..., description="쿼리 벡터와의 거리")
     chunk_index: Optional[int] = Field(None, description="문서 내 청크의 순서")
     vector: Optional[List[float]] = Field(None, description="청크의 임베딩 벡터")
+    venue: Optional[str] = Field(None, description="저널 또는 학회명")
+    citation_count: Optional[int] = Field(None, description="논문의 피인용 횟수")
+    tldr: Optional[str] = Field(None, description="AI가 생성한 한 문장 요약 (TL;DR)")
+    open_access_pdf: Optional[str] = Field(None, description="논문 상세 페이지 또는 PDF 파일 URL")
 
 class UploadResponse(BaseModel):
     """파일 업로드 성공 시 반환되는 응답 모델"""
@@ -38,13 +43,17 @@ class SearchRequest(BaseModel):
     query_text: Optional[str] = Field(None, description="검색할 텍스트 쿼리")
     limit: int = Field(5, description="반환받을 최대 결과 수")
     similarity_threshold: float = Field(0.7, description="유사도 점수 임계값 (0.0 ~ 1.0)")
+    target_titles: Optional[List[str]] = None
 
-class TitleSearchRequest(BaseModel):
-    """제목 검색 요청 모델"""
-    title_query: str = Field(..., description="논문 제목 검색어")
-    limit: Optional[int] = Field(settings.DEFAULT_SEARCH_LIMIT, description="최대 반환 결과 수")
+class DocumentSearchRequest(BaseModel):
+    doc_id: str
+    limit: Optional[int] = 5
+    similarity_threshold: Optional[float] = 0.7
 
-class AuthorSearchRequest(BaseModel):
-    """저자명 검색 요청 모델"""
-    author_query: str = Field(..., description="저자명 검색어")
-    limit: Optional[int] = Field(settings.DEFAULT_SEARCH_LIMIT, description="최대 반환 결과 수")
+class UpdateDocumentRequest(BaseModel):
+    title: Optional[str] = None
+    authors: Optional[str] = None
+    year: Optional[int] = None
+    venue: Optional[str] = None
+    citation_count: Optional[int] = None
+    open_access_pdf: Optional[str] = None

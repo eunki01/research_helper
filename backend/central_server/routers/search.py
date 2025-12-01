@@ -4,16 +4,13 @@ import logging
 from typing import List, Dict, Any
 
 from core.config import settings
-from schemas.search import InternalSearchRequest, InternalSearchResponse, ExternalSearchRequest, ExternalSearchResponse
-from services.query_service import get_query_service
+from schemas.search import InternalSearchRequest, InternalSearchResponse, ExternalSearchRequest, ExternalSearchResponse, ExternalReference, DocumentSearchRequest
+from services.query_service import QueryService, get_query_service
 from core.database import get_db
 
 # 로깅 설정
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
-
-# 의존성 주입을 위한 서비스 인스턴스
-query_service = get_query_service()
 
 router = APIRouter(
   prefix="/search",
@@ -21,7 +18,10 @@ router = APIRouter(
 )
 
 @router.post("/internal", response_model=InternalSearchResponse)
-async def search_internal_data(request: InternalSearchRequest):
+async def search_internal_data(
+    request: InternalSearchRequest,
+    query_service: QueryService = Depends(get_query_service)
+    ):
     """
     내부 백엔드 서버를 통해 검색을 수행하고 LLM 답변을 반환합니다.
     """
@@ -36,12 +36,15 @@ async def search_internal_data(request: InternalSearchRequest):
         raise HTTPException(status_code=500, detail="내부 검색 처리 중 오류가 발생했습니다.")
 
 @router.post("/external", response_model=ExternalSearchResponse)
-async def search_external_data(request: ExternalSearchRequest):
+async def search_external_data(
+    request: ExternalSearchRequest,
+    query_service: QueryService = Depends(get_query_service)                          
+    ):
     """
     Semantic Scholar API 서버를 통해 검색을 수행하고 LLM 답변을 반환합니다.
     """
     try:
-        logger.info(f"외부 검색 요청 수신: {request.query_text}")
+        logger.info(f"외부 검색 요청 수신: {request.query_text} (Filters: {request.dict(exclude={'query_text', 'limit'})})")
         response = await query_service.process_external_search(request)
         return response
     except HTTPException:
@@ -49,3 +52,51 @@ async def search_external_data(request: ExternalSearchRequest):
     except Exception as e:
         logger.error(f"외부 검색 처리 중 오류 발생: {str(e)}")
         raise HTTPException(status_code=500, detail="외부 검색 처리 중 오류가 발생했습니다.")
+    
+@router.post("/similarity", response_model=InternalSearchResponse)
+async def search_by_document(
+    request: DocumentSearchRequest,
+    query_service: QueryService = Depends(get_query_service)
+):
+    """
+    특정 문서 ID를 기반으로 내부 문서를 검색합니다. (벡터 기반 유사도 검색)
+    """
+    try:
+        logger.info(f"문서 기반 검색 요청 수신: ID={request.doc_id}")
+        response = await query_service.process_document_search(request)
+        return response
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"문서 기반 검색 처리 중 오류 발생: {str(e)}")
+        raise HTTPException(status_code=500, detail="문서 기반 검색 처리 중 오류가 발생했습니다.")
+
+@router.get("/citations/{paper_id}", response_model=List[ExternalReference])
+async def get_citations(
+    paper_id: str,
+    limit: int = 10,
+    query_service: QueryService = Depends(get_query_service)
+):
+    """특정 논문을 인용한 논문 목록을 조회합니다."""
+    try:
+        return await query_service.get_citations(paper_id, limit)
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"인용 논문 조회 오류: {str(e)}")
+        raise HTTPException(status_code=500, detail="인용 논문 조회 중 오류가 발생했습니다.")
+
+@router.get("/references/{paper_id}", response_model=List[ExternalReference])
+async def get_references(
+    paper_id: str,
+    limit: int = 10,
+    query_service: QueryService = Depends(get_query_service)
+):
+    """특정 논문이 참고한 문헌 목록을 조회합니다."""
+    try:
+        return await query_service.get_references(paper_id, limit)
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"참고 문헌 조회 오류: {str(e)}")
+        raise HTTPException(status_code=500, detail="참고 문헌 조회 중 오류가 발생했습니다.")

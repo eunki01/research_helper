@@ -13,3 +13,4 @@ passlib[bcrypt]
 httpx
 asyncpg
 python-multipart
+PyJWT

@@ -46,7 +46,18 @@ class SemanticScholarClient:
             logger.error(f"Error during API request to {url}: {e}")
             raise HTTPException(status_code=503, detail=f"Service unavailable: Failed to connect to Semantic Scholar API: {e}")
 
-    def search_papers(self, query: str, limit: int, fields: List[str], sort: str) -> List[Dict[str, Any]]:
+    def search_papers(
+        self, 
+        query: str, 
+        limit: int, 
+        fields: List[str], 
+        sort: str,
+        year: Optional[str] = None,
+        publication_types: Optional[List[str]] = None,
+        open_access_pdf: Optional[bool] = None,
+        venue: Optional[List[str]] = None,
+        fields_of_study: Optional[List[str]] = None
+    ) -> List[Dict[str, Any]]:
         """
         Semantic Scholar /paper/search API를 호출합니다.
         """
@@ -55,13 +66,27 @@ class SemanticScholarClient:
             "query": query,
             "limit": limit,
             "fields": ",".join(fields),
-            "openAccessPdf": "",
-            "publicationDateOrYear": "2022:",
             "sort": sort,
         }
-        logger.info(f"Requesting paper search: query='{query[:30]}...', limit={limit}")
+
+        # 필터 적용
+        if year:
+            params["year"] = year
+        
+        if publication_types:
+            params["publicationTypes"] = ",".join(publication_types)
+            
+        if open_access_pdf:
+            params["openAccessPdf"] = "true"
+            
+        if venue:
+            params["venue"] = ",".join(venue)
+            
+        if fields_of_study:
+            params["fieldsOfStudy"] = ",".join(fields_of_study)
+
+        logger.info(f"Requesting paper search: query='{query[:30]}...', limit={limit}, filters={params}")
         data = self._request(method="GET", url=url, params=params)
-        # 'data' 키가 없거나 None일 경우 빈 리스트 반환
         return data.get("data", []) if data else []
 
     def get_recommendations(self, paper_id: str, limit: int, fields: List[str]) -> List[Dict[str, Any]]:
@@ -77,6 +102,36 @@ class SemanticScholarClient:
         data = self._request(method="GET", url=url, params=params)
         # 'recommendedPapers' 키가 없거나 None일 경우 빈 리스트 반환
         return data.get("recommendedPapers", []) if data else []
+
+    def get_citations(self, paper_id: str, limit: int, fields: List[str]) -> List[Dict[str, Any]]:
+        """
+        특정 논문을 인용한 논문(Citations) 목록을 조회합니다.
+        API: /graph/v1/paper/{paper_id}/citations
+        """
+        url = f"{BASE_API_URL}/paper/{paper_id}/citations"
+        params = {
+            "limit": limit,
+            "fields": ",".join(fields),
+        }
+        logger.info(f"Requesting citations for paper: {paper_id}, limit={limit}")
+        data = self._request(method="GET", url=url, params=params)
+        # 응답 구조: {'data': [{'citingPaper': {...}}, ...]}
+        return data.get("data", []) if data else []
+
+    def get_references(self, paper_id: str, limit: int, fields: List[str]) -> List[Dict[str, Any]]:
+        """
+        특정 논문이 참고한 문헌(References) 목록을 조회합니다.
+        API: /graph/v1/paper/{paper_id}/references
+        """
+        url = f"{BASE_API_URL}/paper/{paper_id}/references"
+        params = {
+            "limit": limit,
+            "fields": ",".join(fields),
+        }
+        logger.info(f"Requesting references for paper: {paper_id}, limit={limit}")
+        data = self._request(method="GET", url=url, params=params)
+        # 응답 구조: {'data': [{'citedPaper': {...}}, ...]}
+        return data.get("data", []) if data else []
 
 # --- 팩토리 함수 ---
 def get_semantic_scholar_client() -> SemanticScholarClient:

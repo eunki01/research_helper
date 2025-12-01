@@ -1,4 +1,5 @@
 // 시각화 관련 타입 정의
+import type { SearchFilters } from './search';
 import type { PaperGraph } from './paper';
 
 export interface VisualizationState {
@@ -11,8 +12,10 @@ export interface VisualizationView {
   id: string;
   title: string;
   graph: PaperGraph;
+  query: string;
   createdAt: string;
   breadcrumbPath: BreadcrumbItem[];
+  filters?: SearchFilters;
 }
 
 export interface BreadcrumbItem {

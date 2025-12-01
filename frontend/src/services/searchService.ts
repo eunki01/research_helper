@@ -12,7 +12,7 @@ import type {
   VisualizationView,
   BreadcrumbItem
 } from '../types/visualization';
-import type { SearchMode } from '../types/search';
+import type { SearchMode, SearchFilters } from '../types/search';
 import type { Paper, Author } from '../types/paper';
 
 export class SearchService {
@@ -24,7 +24,8 @@ export class SearchService {
     query: string,
     mode: SearchMode,
     seedNodeId?: string,
-    parentBreadcrumbPath?: BreadcrumbItem[]
+    parentBreadcrumbPath?: BreadcrumbItem[],
+    filters?: SearchFilters
   ): VisualizationView {
     const nodes: PaperNode[] = response.references.map((ref, index) => ({
       id: ref.paperId,
@@ -63,13 +64,15 @@ export class SearchService {
       id: viewId,
       title: query,
       graph,
+      query,
       createdAt: new Date().toISOString(),
       breadcrumbPath: parentBreadcrumbPath 
         ? [...parentBreadcrumbPath, newBreadcrumbItem]
         : [
             { id: 'home', title: '홈', timestamp: new Date().toISOString() },
             newBreadcrumbItem
-          ]
+          ],
+      filters: filters
     };
   }
 
@@ -119,6 +122,7 @@ export class SearchService {
     return {
       id: viewId,
       title: query,
+      query,
       graph,
       createdAt: new Date().toISOString(),
       breadcrumbPath: parentBreadcrumbPath 
@@ -143,7 +147,7 @@ export class SearchService {
       publicationDate: ref.publicationDate,
       venue: ref.venue,
       citationCount: ref.citationCount,
-      abstract: '', // ExternalReference에는 abstract가 없음
+      abstract: ref.abstract ||'',
       openAccessPdf: ref.openAccessPdf,
       tldr: ref.tldr,
       fieldsOfStudy: ref.fieldsOfStudy,
@@ -168,11 +172,11 @@ export class SearchService {
       title: ref.title,
       authors,
       publicationDate: ref.publicationDate,
-      venue: undefined,
-      citationCount: undefined,
+      venue: ref.venue,
+      citationCount: ref.citationCount,
       abstract,
-      openAccessPdf: undefined,
-      tldr: undefined,
+      openAccessPdf: ref.openAccessPdf,
+      tldr: ref.tldr,
       fieldsOfStudy: undefined,
       type: 'paper'
     };

@@ -1,6 +1,6 @@
 // src/App.tsx
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import MainLayout from './components/layout/MainLayout';
 import HomePage from './pages/HomePage';
 import VisualizationPage from './pages/VisualizationPage';
@@ -9,15 +9,12 @@ import { LoginPage } from './pages/LoginPage';
 import { RegisterPage } from './pages/RegisterPage';
 import { EmailVerificationPage } from './pages/EmailVerificationPage';
 import { EmailVerificationPendingPage } from './pages/EmailVerificationPendingPage';
-
-import { LibraryService } from './services/libraryService';
 import ApiService from './services/apiService';
 import SearchService from './services/searchService';
 import { ThemeProvider, useTheme } from './context/ThemeContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import type { VisualizationState } from './types/visualization';
-import type { SearchMode } from './types/search';
-import type { LibraryPaper } from './types/paper';
+import type { SearchMode, SearchFilters } from './types/search';
 
 // App 컴포넌트를 테마 컨텍스트로 감싸기
 const AppContent: React.FC = () => {
@@ -27,21 +24,13 @@ const AppContent: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [pendingVerificationEmail, setPendingVerificationEmail] = useState<string>('');
   const [verificationToken, setVerificationToken] = useState<string>('');
-  const [libraryPapers, setLibraryPapers] = useState<LibraryPaper[]>([]);
   const [visualizationState, setVisualizationState] = useState<VisualizationState>({
     currentViewIndex: 0,
     views: [],
     maxViews: 20
   });
 
-  // 라이브러리 데이터 로드
-  useEffect(() => {
-    if (isAuthenticated) {
-      setLibraryPapers(LibraryService.getLibraryPapers());
-    }
-  }, [isAuthenticated]);
-
-  // 인증 래퍼 함수
+  // 인증 래퍼 함수 (컴포넌트 레벨로 이동)
   const requireAuth = (callback: Function) => {
     return (...args: any[]) => {
       if (!isAuthenticated) {
@@ -53,7 +42,7 @@ const AppContent: React.FC = () => {
     };
   };
 
-
+  // 로그인 상태 체크 Effect
   useEffect(() => {
     if (!isAuthenticated && 
         currentPage !== 'login' && 
@@ -87,18 +76,18 @@ const AppContent: React.FC = () => {
     // RegisterForm에서 verification-pending 페이지로 이동
   };
 
-  // 🆕 이메일 인증 대기 페이지로 이동
+  // 이메일 인증 대기 페이지로 이동
   const handleNavigateToVerificationPending = (email: string) => {
     setPendingVerificationEmail(email);
     setCurrentPage('verification-pending');
   };
 
-  // 🆕 이메일 인증 처리
+  // 이메일 인증 처리
   const handleVerifyEmail = async (token: string) => {
     await verifyEmail(token);
   };
 
-  // 🆕 인증 이메일 재발송
+  // 인증 이메일 재발송
   const handleResendVerification = async (email: string) => {
     await resendVerification(email);
   };
@@ -114,53 +103,79 @@ const AppContent: React.FC = () => {
     });
   };
 
-  // 검색 실행
-  const handleSearch = requireAuth(async (query: string, mode: SearchMode, selectedSeedPaper?: string) => {
+  // 검색 실행 (중복 제거됨)
+  const handleSearch = requireAuth(async (
+    query: string, 
+    mode: SearchMode, 
+    selectedSeedPaper?: string,
+    filters?: SearchFilters // 필터 인자 추가 확인
+  ) => {
     setIsLoading(true);
     
     try {
-      // Seed 논문 제목 가져오기
-      const seedPaper = libraryPapers.find(paper => paper.id === selectedSeedPaper);
-      const seedPaperTitle = seedPaper?.title;
-      
-      // 실제 API 호출
-      const mergedQuery = SearchService.mergeQueryWithSeedPaper(query, seedPaperTitle);
-      
       let response;
+      let view: any;
+      
+      // 1. 파일 기반 검색 (selectedSeedPaper 존재 시)
+      if (selectedSeedPaper) {
+         // 파일 검색은 내부 RAG 엔진을 사용하므로 searchSimilarity 호출
+         response = await ApiService.searchSimilarity(selectedSeedPaper, 5);
+         
+         // 시각화 뷰 생성 (Internal 뷰 포맷 사용)
+         view = SearchService.transformInternalToVisualizationView(
+           response, 
+           `File: ${query}`, // 쿼리에는 파일 제목이 들어옴
+           'internal', 
+           selectedSeedPaper
+         );
+         
+         setVisualizationState({ currentViewIndex: 0, views: [view], maxViews: 20 });
+         setCurrentPage('visualization');
+         return; 
+      }
+
+      // 2. 텍스트 기반 검색
       if (mode === 'external') {
-        response = await ApiService.searchExternal(mergedQuery, 5);
-        const view = SearchService.transformExternalToVisualizationView(
-          response, 
-          query, 
-          mode, 
-          selectedSeedPaper
+        const limit = filters?.limit || 5;
+        response = await ApiService.searchExternal(query, limit, filters);
+        view = SearchService.transformExternalToVisualizationView(
+          response, query, mode, undefined, undefined, filters
         );
+      } else {
+        response = await ApiService.searchInternal(query, 5, 0.7);
+        view = SearchService.transformInternalToVisualizationView(
+          response, query, mode, undefined
+        );
+      }
+      
+      // 뷰 업데이트 로직
+      setVisualizationState(prev => {
+        // 이미 시각화 페이지에 있고, 같은 모드에서 검색한 경우 -> 히스토리에 추가
+        if (currentPage === 'visualization' && prev.views.length > 0) {
+          const newViews = [...prev.views, view];
+          // 최대 개수 제한
+          if (newViews.length > prev.maxViews) {
+            newViews.shift();
+          }
+          
+          return {
+            ...prev,
+            currentViewIndex: newViews.length - 1, // 가장 최신 뷰로 이동
+            views: newViews
+          };
+        }
         
-        setVisualizationState({
+        // 홈에서 검색하거나 모드가 바뀐 경우 -> 초기화
+        return {
           currentViewIndex: 0,
           views: [view],
           maxViews: 20
-        });
-      } else {
-        response = await ApiService.searchInternal(mergedQuery, 5, 0.7);
-        const view = SearchService.transformInternalToVisualizationView(
-          response, 
-          query, 
-          mode, 
-          selectedSeedPaper
-        );
-
-      setVisualizationState({
-        currentViewIndex: 0,
-          views: [view],
-        maxViews: 20
+        };
       });
-      }
-      
+
       setCurrentPage('visualization');
     } catch (error) {
       console.error('Search failed:', error);
-      // 에러 처리 - 사용자에게 알림 표시할 수 있음
       alert(`검색 중 오류가 발생했습니다: ${error instanceof Error ? error.message : '알 수 없는 오류'}`);
     } finally {
       setIsLoading(false);
@@ -172,7 +187,6 @@ const AppContent: React.FC = () => {
     setIsLoading(true);
     
     try {
-      // 클릭한 노드의 정보 가져오기
       const currentView = visualizationState.views[visualizationState.currentViewIndex];
       const clickedNode = currentView.graph.nodes.find((node: any) => node.id === nodeId);
       
@@ -181,64 +195,34 @@ const AppContent: React.FC = () => {
         return;
       }
       
-      // 클릭한 노드의 제목을 쿼리로 사용하여 재검색
       const query = clickedNode.data.title;
       const mode = currentView.graph.searchMode || 'external';
       
       let response;
       if (mode === 'external') {
         response = await ApiService.searchExternal(query, 5);
-        const currentView = visualizationState.views[visualizationState.currentViewIndex];
         const newView = SearchService.transformExternalToVisualizationView(
-          response, 
-          query, 
-          mode, 
-          nodeId,
-          currentView.breadcrumbPath
+          response, query, mode, nodeId, currentView.breadcrumbPath
         );
         
-        // 새로운 뷰를 현재 뷰 다음에 추가
         const newViews = [...visualizationState.views];
         const insertIndex = visualizationState.currentViewIndex + 1;
-        
-        // 최대 뷰 수 제한
-        if (newViews.length >= visualizationState.maxViews) {
-          newViews.shift();
-        }
-        
+        if (newViews.length >= visualizationState.maxViews) newViews.shift();
         newViews.splice(insertIndex, 0, newView);
         
-        setVisualizationState({
-          ...visualizationState,
-          views: newViews,
-          currentViewIndex: insertIndex
-        });
+        setVisualizationState({ ...visualizationState, views: newViews, currentViewIndex: insertIndex });
       } else {
         response = await ApiService.searchInternal(query, 5, 0.7);
         const newView = SearchService.transformInternalToVisualizationView(
-          response, 
-          query, 
-          mode, 
-          nodeId,
-          currentView.breadcrumbPath
+          response, query, mode, nodeId, currentView.breadcrumbPath
         );
         
-        // 새로운 뷰를 현재 뷰 다음에 추가
-      const newViews = [...visualizationState.views];
-      const insertIndex = visualizationState.currentViewIndex + 1;
-      
-      // 최대 뷰 수 제한
-      if (newViews.length >= visualizationState.maxViews) {
-        newViews.shift();
-      }
-      
-      newViews.splice(insertIndex, 0, newView);
-      
-      setVisualizationState({
-        ...visualizationState,
-        views: newViews,
-        currentViewIndex: insertIndex
-      });
+        const newViews = [...visualizationState.views];
+        const insertIndex = visualizationState.currentViewIndex + 1;
+        if (newViews.length >= visualizationState.maxViews) newViews.shift();
+        newViews.splice(insertIndex, 0, newView);
+        
+        setVisualizationState({ ...visualizationState, views: newViews, currentViewIndex: insertIndex });
       }
       
     } catch (error) {
@@ -249,50 +233,32 @@ const AppContent: React.FC = () => {
     }
   });
 
-  // 브레드크럼 네비게이션 (브레드크럼 인덱스 → 뷰 인덱스 변환)
   const handleBreadcrumbNavigation = (breadcrumbIndex: number) => {
-    // 브레드크럼 인덱스를 뷰 인덱스로 변환
-    // breadcrumbIndex 0 = 홈 (뷰 없음), breadcrumbIndex 1 = 뷰 인덱스 0
     const viewIndex = breadcrumbIndex - 1;
-    
     if (viewIndex < 0) {
-      // 홈으로 돌아가기 - 시각화 상태 완전 초기화
       setCurrentPage('home');
-      setVisualizationState({
-        currentViewIndex: 0,
-        views: [],
-        maxViews: 20
-      });
+      setVisualizationState({ currentViewIndex: 0, views: [], maxViews: 20 });
       return;
     }
-    
     setVisualizationState(prev => ({
       ...prev,
       currentViewIndex: viewIndex,
-      // 이후 경로들 제거 (클릭한 뷰까지 포함)
       views: prev.views.slice(0, viewIndex + 1)
     }));
   };
 
-  // 캐러셀 네비게이션 (뷰 인덱스 직접 사용)
   const handleCarouselNavigation = (viewIndex: number) => {
-    setVisualizationState(prev => ({
-      ...prev,
-      currentViewIndex: viewIndex
-    }));
+    setVisualizationState(prev => ({ ...prev, currentViewIndex: viewIndex }));
   };
 
-  // 검색 모드 변경
   const handleModeChange = (mode: SearchMode) => {
     setSearchMode(mode);
   };
 
-  // 라이브러리 페이지로 이동
   const handleOpenLibrary = () => {
     setCurrentPage('library');
   };
 
-  // 현재 페이지 렌더링
   const renderCurrentPage = () => {
     if (currentPage === 'login') {
       return (
@@ -315,7 +281,7 @@ const AppContent: React.FC = () => {
       );
     }
 
-    // 🆕 이메일 인증 대기 페이지
+    // 이메일 인증 대기 페이지
     if (currentPage === 'verification-pending') {
       return (
         <EmailVerificationPendingPage
@@ -327,7 +293,7 @@ const AppContent: React.FC = () => {
       );
     }
 
-    // 🆕 이메일 인증 페이지
+    // 이메일 인증 페이지
     if (currentPage === 'verify-email') {
       return (
         <EmailVerificationPage
@@ -348,7 +314,6 @@ const AppContent: React.FC = () => {
       return (
         <HomePage
           onSearch={handleSearch}
-          libraryPapers={libraryPapers}
           isLoading={isLoading}
           currentMode={searchMode}
           onModeChange={handleModeChange}
@@ -365,12 +330,16 @@ const AppContent: React.FC = () => {
       );
     }
     
+    const currentView = visualizationState.views[visualizationState.currentViewIndex];
+
     return (
       <VisualizationPage
+        key={currentView?.id}
         views={visualizationState.views}
         currentViewIndex={visualizationState.currentViewIndex}
         onNodeClick={handleNodeClick}
         onNavigateToView={handleCarouselNavigation}
+        onSearch={handleSearch}
       />
     );
   };
@@ -388,8 +357,9 @@ const AppContent: React.FC = () => {
       visualizationState={visualizationState}
       onNavigateToView={handleBreadcrumbNavigation}
       onOpenLibrary={handleOpenLibrary}
-      onLogout={handleLogout}
+      // 중복된 showSidebar 제거 및 로직 통합
       showSidebar={currentPage === 'visualization'}
+      onLogout={handleLogout}
       isAuthenticated={isAuthenticated}  
       currentUser={currentUser}          
       onLogin={() => setCurrentPage('login')} 
@@ -399,7 +369,6 @@ const AppContent: React.FC = () => {
   );
 }
 
-// 메인 App 컴포넌트
 function App() {
   return (
     <AuthProvider>

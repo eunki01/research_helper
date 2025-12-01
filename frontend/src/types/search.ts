@@ -3,6 +3,26 @@ import type { ExternalReference, InternalDocumentReference, SimilarityLink } fro
 
 export type SearchMode = 'internal' | 'external';
 
+export interface SearchFilters {
+  startYear: string;
+  endYear: string;
+  publicationTypes: string[];
+  isOpenAccess: boolean;
+  venues: string; // 콤마로 구분된 문자열 입력
+  fieldsOfStudy: string[];
+  limit: number;
+}
+
+export const DEFAULT_FILTERS: SearchFilters = {
+  startYear: '',
+  endYear: '',
+  publicationTypes: [],
+  isOpenAccess: false,
+  venues: '',
+  fieldsOfStudy: [],
+  limit: 5
+};
+
 export interface SearchQuery {
   text: string;
   mode: SearchMode;

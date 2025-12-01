@@ -1,23 +1,23 @@
-// ÀÌ¸ŞÀÏ À¯È¿¼º °Ë»ç
+// ì´ë©”ì¼ ìœ íš¨ì„± ê²€ì‚¬
 export const validateEmail = (email: string): boolean => {
     const emailRegex = /\S+@\S+\.\S+/;
     return emailRegex.test(email);
 };
 
-// ºñ¹Ğ¹øÈ£ À¯È¿¼º °Ë»ç
+// ë¹„ë°€ë²ˆí˜¸ ìœ íš¨ì„± ê²€ì‚¬
 export const validatePassword = (password: string): boolean => {
     return password.length >= 8;
 };
 
-// ÀÌ¸§ À¯È¿¼º °Ë»ç
+// ì´ë¦„ ìœ íš¨ì„± ê²€ì‚¬
 export const validateName = (name: string): boolean => {
     return name.trim().length > 0;
 };
 
-// ¿¡·¯ ¸Ş½ÃÁö »ı¼º
+// ì—ëŸ¬ ë©”ì‹œì§€ ìƒì„±
 export const getErrorMessage = (error: unknown): string => {
     if (error instanceof Error) {
         return error.message;
     }
-    return '¾Ë ¼ö ¾ø´Â ¿À·ù°¡ ¹ß»ıÇß½À´Ï´Ù.';
+    return 'ì•Œ ìˆ˜ ì—†ëŠ” ì˜¤ë¥˜ê°€ ë°œìƒí–ˆìŠµë‹ˆë‹¤.';
 };
