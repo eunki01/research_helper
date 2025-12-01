@@ -1,33 +1,114 @@
 // src/App.tsx
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import MainLayout from './components/layout/MainLayout';
 import HomePage from './pages/HomePage';
 import VisualizationPage from './pages/VisualizationPage';
 import LibraryPage from './pages/LibraryPage';
+import { LoginPage } from './pages/LoginPage';
+import { RegisterPage } from './pages/RegisterPage';
+import { EmailVerificationPage } from './pages/EmailVerificationPage';
+import { EmailVerificationPendingPage } from './pages/EmailVerificationPendingPage';
 import ApiService from './services/apiService';
 import SearchService from './services/searchService';
 import { ThemeProvider, useTheme } from './context/ThemeContext';
+import { AuthProvider, useAuth } from './context/AuthContext';
 import type { VisualizationState } from './types/visualization';
 import type { SearchMode, SearchFilters } from './types/search';
 
 // App 컴포넌트를 테마 컨텍스트로 감싸기
 const AppContent: React.FC = () => {
   const { searchMode, setSearchMode } = useTheme();
-  const [currentPage, setCurrentPage] = useState<'home' | 'visualization' | 'library'>('home');
+  const { isAuthenticated, currentUser, login, register, logout, verifyEmail, resendVerification, isLoading: authLoading } = useAuth();
+  const [currentPage, setCurrentPage] = useState<'home' | 'visualization' | 'library' | 'login' | 'register' | 'verify-email' | 'verification-pending'>('home');
   const [isLoading, setIsLoading] = useState(false);
+  const [pendingVerificationEmail, setPendingVerificationEmail] = useState<string>('');
+  const [verificationToken, setVerificationToken] = useState<string>('');
   const [visualizationState, setVisualizationState] = useState<VisualizationState>({
     currentViewIndex: 0,
     views: [],
     maxViews: 20
   });
 
-  // 검색 실행
-  const handleSearch = async (
+  // 인증 래퍼 함수 (컴포넌트 레벨로 이동)
+  const requireAuth = (callback: Function) => {
+    return (...args: any[]) => {
+      if (!isAuthenticated) {
+        alert('로그인이 필요한 기능입니다.');
+        setCurrentPage('login');
+        return;
+      }
+      return callback(...args);
+    };
+  };
+
+  // 로그인 상태 체크 Effect
+  useEffect(() => {
+    if (!isAuthenticated && 
+        currentPage !== 'login' && 
+        currentPage !== 'register' && 
+        currentPage !== 'verify-email' && 
+        currentPage !== 'verification-pending') {
+      setCurrentPage('login');
+    }
+  }, [isAuthenticated, currentPage]);
+
+  // URL에서 이메일 인증 토큰 확인
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const token = urlParams.get('token');
+    
+    if (token) {
+      setVerificationToken(token);
+      setCurrentPage('verify-email');
+    }
+  }, []);
+
+  // 로그인 처리
+  const handleLogin = async (email: string, password: string) => {
+    await login(email, password);
+    setCurrentPage('home');
+  };
+
+  // 회원가입 처리
+  const handleRegister = async (email: string, password: string, name: string) => {
+    await register(email, password, name);
+    // RegisterForm에서 verification-pending 페이지로 이동
+  };
+
+  // 이메일 인증 대기 페이지로 이동
+  const handleNavigateToVerificationPending = (email: string) => {
+    setPendingVerificationEmail(email);
+    setCurrentPage('verification-pending');
+  };
+
+  // 이메일 인증 처리
+  const handleVerifyEmail = async (token: string) => {
+    await verifyEmail(token);
+  };
+
+  // 인증 이메일 재발송
+  const handleResendVerification = async (email: string) => {
+    await resendVerification(email);
+  };
+
+  // 로그아웃 처리
+  const handleLogout = () => {
+    logout();
+    setCurrentPage('login');
+    setVisualizationState({
+      currentViewIndex: 0,
+      views: [],
+      maxViews: 20
+    });
+  };
+
+  // 검색 실행 (중복 제거됨)
+  const handleSearch = requireAuth(async (
     query: string, 
     mode: SearchMode, 
-    selectedSeedPaper?: string, 
-    filters?: SearchFilters
+    selectedSeedPaper?: string,
+    filters?: SearchFilters // 필터 인자 추가 확인
   ) => {
     setIsLoading(true);
     
@@ -41,11 +122,11 @@ const AppContent: React.FC = () => {
          response = await ApiService.searchSimilarity(selectedSeedPaper, 5);
          
          // 시각화 뷰 생성 (Internal 뷰 포맷 사용)
-         const view = SearchService.transformInternalToVisualizationView(
-            response, 
-            `File: ${query}`, // 쿼리에는 파일 제목이 들어옴
-            'internal', 
-            selectedSeedPaper
+         view = SearchService.transformInternalToVisualizationView(
+           response, 
+           `File: ${query}`, // 쿼리에는 파일 제목이 들어옴
+           'internal', 
+           selectedSeedPaper
          );
          
          setVisualizationState({ currentViewIndex: 0, views: [view], maxViews: 20 });
@@ -55,7 +136,6 @@ const AppContent: React.FC = () => {
 
       // 2. 텍스트 기반 검색
       if (mode === 'external') {
-        // [수정] 필터의 limit 값을 사용 (없으면 기본값 5)
         const limit = filters?.limit || 5;
         response = await ApiService.searchExternal(query, limit, filters);
         view = SearchService.transformExternalToVisualizationView(
@@ -68,13 +148,10 @@ const AppContent: React.FC = () => {
         );
       }
       
-      // [수정] 뷰 업데이트 로직 개선: 기존 히스토리 유지
+      // 뷰 업데이트 로직
       setVisualizationState(prev => {
         // 이미 시각화 페이지에 있고, 같은 모드에서 검색한 경우 -> 히스토리에 추가
         if (currentPage === 'visualization' && prev.views.length > 0) {
-          // 현재 보고 있는 뷰 이후의 히스토리는 날리고 새 검색 결과 추가 (브라우저 동작 방식)
-          // 또는 그냥 뒤에 계속 추가 (히스토리 패널 방식) -> 여기선 Append 방식 사용
-          
           const newViews = [...prev.views, view];
           // 최대 개수 제한
           if (newViews.length > prev.maxViews) {
@@ -103,10 +180,10 @@ const AppContent: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  });
 
-  // 노드 클릭 처리 (실제 확장은 이 함수가 담당, VisualizationPage에서 호출됨)
-  const handleNodeClick = async (nodeId: string) => {
+  // 노드 클릭 처리
+  const handleNodeClick = requireAuth(async (nodeId: string) => {
     setIsLoading(true);
     
     try {
@@ -154,7 +231,7 @@ const AppContent: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  });
 
   const handleBreadcrumbNavigation = (breadcrumbIndex: number) => {
     const viewIndex = breadcrumbIndex - 1;
@@ -183,6 +260,56 @@ const AppContent: React.FC = () => {
   };
 
   const renderCurrentPage = () => {
+    if (currentPage === 'login') {
+      return (
+        <LoginPage
+          onLogin={handleLogin}
+          onNavigateToRegister={() => setCurrentPage('register')}
+          isLoading={authLoading}
+        />
+      );
+    }
+    
+    if (currentPage === 'register') {
+      return (
+        <RegisterPage
+          onRegister={handleRegister}
+          onNavigateToLogin={() => setCurrentPage('login')}
+          onNavigateToVerificationPending={handleNavigateToVerificationPending}
+          isLoading={authLoading}
+        />
+      );
+    }
+
+    // 이메일 인증 대기 페이지
+    if (currentPage === 'verification-pending') {
+      return (
+        <EmailVerificationPendingPage
+          email={pendingVerificationEmail}
+          onResendEmail={handleResendVerification}
+          onNavigateToLogin={() => setCurrentPage('login')}
+          isLoading={authLoading}
+        />
+      );
+    }
+
+    // 이메일 인증 페이지
+    if (currentPage === 'verify-email') {
+      return (
+        <EmailVerificationPage
+          token={verificationToken}
+          onVerify={handleVerifyEmail}
+          onNavigateToLogin={() => setCurrentPage('login')}
+          isLoading={authLoading}
+        />
+      );
+    }
+
+    // 인증된 사용자만 접근 가능한 페이지들
+    if (!isAuthenticated) {
+      return null;
+    }
+    
     if (currentPage === 'home') {
       return (
         <HomePage
@@ -217,23 +344,38 @@ const AppContent: React.FC = () => {
     );
   };
 
+  // 로그인/회원가입/이메일 인증 페이지는 레이아웃 없이 표시
+  if (currentPage === 'login' || 
+      currentPage === 'register' || 
+      currentPage === 'verify-email' || 
+      currentPage === 'verification-pending') {
+    return renderCurrentPage();
+  }
+
   return (
     <MainLayout
       visualizationState={visualizationState}
       onNavigateToView={handleBreadcrumbNavigation}
       onOpenLibrary={handleOpenLibrary}
-      showSidebar={false} 
+      // 중복된 showSidebar 제거 및 로직 통합
+      showSidebar={currentPage === 'visualization'}
+      onLogout={handleLogout}
+      isAuthenticated={isAuthenticated}  
+      currentUser={currentUser}          
+      onLogin={() => setCurrentPage('login')} 
     >
       {renderCurrentPage()}
     </MainLayout>
   );
-};
+}
 
 function App() {
   return (
-    <ThemeProvider initialMode="external">
-      <AppContent />
-    </ThemeProvider>
+    <AuthProvider>
+      <ThemeProvider initialMode="external">
+        <AppContent />
+      </ThemeProvider>
+    </AuthProvider>
   );
 }
 

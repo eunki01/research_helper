@@ -5,7 +5,10 @@ from core.config import settings
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 
-async_engine = create_async_engine(settings.DATABASE_URL, echo=True)
+async_engine = create_async_engine(settings.DATABASE_URL,
+                                   echo=True,
+                                   pool_recycle=3600,
+                                   pool_pre_ping=True)
 AsyncSessionLocal = sessionmaker(
   autocommit=False, autoflush=False, bind=async_engine, class_=AsyncSession
 )

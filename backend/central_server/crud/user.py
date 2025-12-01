@@ -2,22 +2,28 @@ from utils.encoder import hash_password
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from models.user_model import User
-from schemas.user_create import UserCreate
+from schemas.user_dto import UserDto
+from schemas.user_create import RegisterRequest
 
-async def create_user(db: AsyncSession, user: UserCreate):
+async def create_user(db: AsyncSession, user: RegisterRequest):
     hashed_password = hash_password(user.Password)
     
     db_user = User(
         Email=user.Email, 
         PasswordHash=hashed_password,
         Name=user.Name,
-        IsActive=True 
+        IsActive=False
     )
     
     db.add(db_user)
     await db.commit()
     await db.refresh(db_user)
-    return db_user
+    
+    user_dto = UserDto(
+        Email = db_user.Email,
+        SignUpDate = db_user.SignUpDate
+    )
+    return user_dto
 
 async def get_user_by_id(db: AsyncSession, user_id: int):
     result = await db.get(User, user_id)
@@ -28,7 +34,7 @@ async def get_user_by_email(db: AsyncSession, email: str):
     result = await db.execute(stmt)
     return result.scalar_one_or_none()
 
-async def update_user(db: AsyncSession, db_user: User, user_update: UserCreate):
+async def update_user(db: AsyncSession, db_user: User, user_update: RegisterRequest):
     update_data = user_update.model_dump(exclude_unset=True) 
 
     for key, value in update_data.items():

@@ -13,7 +13,7 @@ class User(Base):
     Email: Mapped[str] = mapped_column(String(255), unique=True)
     PasswordHash: Mapped[str] = mapped_column(String(255))
     Name: Mapped[str] = mapped_column(String(255))
-    SignUpDate: Mapped[Optional[datetime.date]] = mapped_column(Date, nullable=True)
+    SignUpDate: Mapped[Optional[datetime.date]] = mapped_column(DateTime, nullable=True, default=datetime.now)
     IsActive: Mapped[bool] = mapped_column(Boolean, default=True)
     
     # Relationships
