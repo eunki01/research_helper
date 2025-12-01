@@ -40,10 +40,10 @@ export class ApiService {
       // 변환된 필터 적용
       ...(filters && {
         year: yearRange,
-        publication_types: filters.publicationTypes.length > 0 ? filters.publicationTypes : undefined,
-        open_access_pdf: filters.isOpenAccess || undefined,
-        venue: filters.venues ? filters.venues.split(',').map(v => v.trim()).filter(v => v) : undefined,
-        fields_of_study: filters.fieldsOfStudy.length > 0 ? filters.fieldsOfStudy : undefined
+        publication_types: filters.publicationTypes.length > 0 ? filters.publicationTypes : [],
+        open_access_pdf: filters.isOpenAccess || false,
+        venue: filters.venues ? filters.venues.split(',').map(v => v.trim()).filter(v => v) : [],
+        fields_of_study: filters.fieldsOfStudy.length > 0 ? filters.fieldsOfStudy : []
       })
     };
 

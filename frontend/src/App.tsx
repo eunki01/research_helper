@@ -1,34 +1,26 @@
 // src/App.tsx
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import MainLayout from './components/layout/MainLayout';
 import HomePage from './pages/HomePage';
 import VisualizationPage from './pages/VisualizationPage';
 import LibraryPage from './pages/LibraryPage';
-import { LibraryService } from './services/libraryService';
 import ApiService from './services/apiService';
 import SearchService from './services/searchService';
 import { ThemeProvider, useTheme } from './context/ThemeContext';
 import type { VisualizationState } from './types/visualization';
 import type { SearchMode, SearchFilters } from './types/search';
-import type { LibraryPaper } from './types/paper';
 
 // App 컴포넌트를 테마 컨텍스트로 감싸기
 const AppContent: React.FC = () => {
   const { searchMode, setSearchMode } = useTheme();
   const [currentPage, setCurrentPage] = useState<'home' | 'visualization' | 'library'>('home');
   const [isLoading, setIsLoading] = useState(false);
-  const [libraryPapers, setLibraryPapers] = useState<LibraryPaper[]>([]);
   const [visualizationState, setVisualizationState] = useState<VisualizationState>({
     currentViewIndex: 0,
     views: [],
     maxViews: 20
   });
-
-  // 라이브러리 데이터 로드
-  useEffect(() => {
-    setLibraryPapers(LibraryService.getLibraryPapers());
-  }, []);
 
   // 검색 실행
   const handleSearch = async (
@@ -195,7 +187,6 @@ const AppContent: React.FC = () => {
       return (
         <HomePage
           onSearch={handleSearch}
-          libraryPapers={libraryPapers}
           isLoading={isLoading}
           currentMode={searchMode}
           onModeChange={handleModeChange}

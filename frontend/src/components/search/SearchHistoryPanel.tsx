@@ -9,6 +9,7 @@ interface SearchHistoryPanelProps {
   currentViewIndex: number;
   onNavigate: (index: number) => void;
   onSearch: (query: string, filters?: SearchFilters) => void;
+  onClose?: () => void;
   className?: string;
 }
 
@@ -17,6 +18,7 @@ const SearchHistoryPanel: React.FC<SearchHistoryPanelProps> = ({
   currentViewIndex,
   onNavigate,
   onSearch,
+  onClose,
   className = ''
 }) => {
   const currentView = views[currentViewIndex];
@@ -102,10 +104,25 @@ const SearchHistoryPanel: React.FC<SearchHistoryPanelProps> = ({
     <div className={`flex flex-col h-full bg-gray-50 border-r border-gray-200 ${className}`}>
       {/* 헤더 & 검색창 */}
       <div className="p-4 bg-white border-b border-gray-200 flex-shrink-0 space-y-3 z-20"> {/* z-index 추가 */}
-        <h2 className="font-bold text-gray-800 flex items-center">
-          <span className="text-xl mr-2">🕒</span> 
-          검색 기록
-        </h2>
+        {/* [수정] 제목과 닫기 버튼을 가로로 배치 */}
+        <div className="flex justify-between items-center">
+          <h2 className="font-bold text-gray-800 flex items-center">
+            <span className="text-xl mr-2">🕒</span> 
+            검색 기록
+          </h2>
+          {/* [추가] 닫기 버튼이 전달된 경우 렌더링 */}
+          {onClose && (
+            <button 
+              onClick={onClose} 
+              className="text-gray-400 hover:text-gray-600 p-1 rounded-md hover:bg-gray-100 transition-colors"
+              title="패널 닫기"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+            </button>
+          )}
+        </div>
         
         {/* 검색창 영역 (relative) */}
         <div className="relative">

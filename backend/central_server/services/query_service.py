@@ -210,7 +210,20 @@ class QueryService:
             references = [self._map_to_external_reference(paper) for paper in search_results]
 
             # 5. 논문 간 유사도 계산
-            papers_for_similarity = [{"paperId": ref.paperId, "embedding": paper.get("embedding", {}).get("vector")} for ref, paper in zip(references, search_results) if paper.get("embedding", {}).get("vector")]
+            papers_for_similarity = []
+            for ref, paper in zip(references, search_results):
+                # embedding 필드가 None이거나 비어있을 수 있으므로 안전하게 접근
+                embedding_data = paper.get("embedding")
+                
+                # embedding_data가 존재하고(None이 아님) 딕셔너리 형태일 때만 vector 추출
+                if embedding_data and isinstance(embedding_data, dict):
+                    vector = embedding_data.get("vector")
+                    if vector:
+                        papers_for_similarity.append({
+                            "paperId": ref.paperId,
+                            "embedding": vector
+                        })
+
             similarity_graph_data = self.similarity_service.calculate_similarity_graph(papers_for_similarity)
             similarity_graph = [SimilarityLink(**link) for link in similarity_graph_data]
 

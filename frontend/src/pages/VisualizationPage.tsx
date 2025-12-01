@@ -179,17 +179,8 @@ const VisualizationPage: React.FC<VisualizationPageProps> = ({
         }`}
       >
         {isExternalMode ? (
-          // [추가] 외부 검색용 히스토리 패널
+          // 외부 검색용 히스토리 패널
           <div className="flex flex-col h-full relative">
-             {/* 패널 닫기 버튼 (헤더 내부에 포함하거나 별도로 둠) */}
-             <div className="absolute top-4 right-4 z-10">
-                <button onClick={() => setIsChatOpen(false)} className="text-gray-400 hover:text-gray-600">
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                  </svg>
-                </button>
-             </div>
-             
              <SearchHistoryPanel
                 views={views}
                 currentViewIndex={currentViewIndex}
@@ -201,11 +192,12 @@ const VisualizationPage: React.FC<VisualizationPageProps> = ({
                     onSearch(query, 'external', undefined, filters); 
                   }
                 }}
+                onClose={() => setIsChatOpen(false)}
                 className="h-full"
               />
           </div>
         ) : (
-          // [기존] 내부 검색용 채팅 패널
+          // 내부 검색용 채팅 패널
           <>
             <div className="p-4 bg-white border-b border-gray-200 flex justify-between items-center">
               <h2 className="font-bold text-gray-800 flex items-center">
@@ -239,12 +231,12 @@ const VisualizationPage: React.FC<VisualizationPageProps> = ({
           title={isExternalMode ? "검색 기록 열기" : "채팅 열기"}
         >
           {isExternalMode ? (
-            // [추가] 시계 아이콘 (히스토리)
+            // 시계 아이콘 (히스토리)
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
           ) : (
-            // [기존] 말풍선 아이콘 (채팅)
+            // 말풍선 아이콘 (채팅)
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
             </svg>

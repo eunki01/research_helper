@@ -24,7 +24,7 @@ const Header: React.FC<HeaderProps> = ({
         {/* 로고 */}
         <div className="flex items-center">
           <h1 className="text-xl font-bold text-gray-900">
-            Research Navigator
+            Research Helper
           </h1>
         </div>
 
