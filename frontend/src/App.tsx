@@ -427,7 +427,7 @@ const AppContent: React.FC = () => {
       onNavigateToView={handleBreadcrumbNavigation}
       onOpenLibrary={handleOpenLibrary}
       // 중복된 showSidebar 제거 및 로직 통합
-      showSidebar={currentPage === 'visualization'}
+      //showSidebar={currentPage === 'visualization'}
       onLogout={handleLogout}
       isAuthenticated={isAuthenticated}  
       currentUser={currentUser}          

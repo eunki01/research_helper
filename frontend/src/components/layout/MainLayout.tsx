@@ -1,6 +1,6 @@
 import React from 'react';
 import Header from './Header';
-import Sidebar from './Sidebar';
+//import Sidebar from './Sidebar';
 import type { VisualizationState } from '../../types/visualization';
 import type { User } from '../../types/auth';
 
@@ -9,7 +9,7 @@ interface MainLayoutProps {
   visualizationState?: VisualizationState;
   onNavigateToView?: (viewIndex: number) => void;
   onOpenLibrary?: () => void;
-  showSidebar?: boolean;
+  //showSidebar?: boolean;
   isAuthenticated?: boolean;
   currentUser?: User | null;
   onLogin?: () => void;
@@ -21,7 +21,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({
   visualizationState,
   onNavigateToView,
   onOpenLibrary,
-  showSidebar = false,
+  //showSidebar = false,
   isAuthenticated = false,
   currentUser = null,
   onLogin,
@@ -38,12 +38,15 @@ const MainLayout: React.FC<MainLayoutProps> = ({
         onLogin={onLogin}
         onLogout={onLogout}
       />
-      <div className={`${showSidebar ? 'flex' : ''} h-screen pt-16`}>
+      {/* <div className={`${showSidebar ? 'flex' : ''} h-screen pt-16`}>
         {showSidebar && <Sidebar />}
         <main className={`${showSidebar ? 'flex-1 overflow-hidden' : 'w-full'}`}>
           {children}
         </main>
-      </div>
+      </div> */}
+      <main className="flex-1 pt-16 h-screen overflow-hidden">
+        {children}
+      </main>
     </div>
   );
 };
