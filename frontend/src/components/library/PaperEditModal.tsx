@@ -32,7 +32,7 @@ const PaperEditModal: React.FC<PaperEditModalProps> = ({
       
       // Author[] -> "Name1, Name2" 문자열 변환
       const authorsStr = paper.authors
-        .map(a => a.name)
+        .map(a => a)
         .filter(name => name && name !== 'Unknown')
         .join(', ');
       setAuthors(authorsStr);

@@ -324,7 +324,6 @@ const AppContent: React.FC = () => {
     if (currentPage === 'library') {
       return (
         <LibraryPage
-          onPaperSelect={() => setCurrentPage('home')}
           onClose={() => setCurrentPage('home')}
         />
       );

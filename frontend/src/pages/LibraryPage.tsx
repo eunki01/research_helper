@@ -2,16 +2,15 @@ import React, { useState, useEffect, useMemo } from 'react';
 import ApiService from '../services/apiService';
 import PaperUploadForm from '../components/library/PaperUploadForm';
 import PaperEditModal from '../components/library/PaperEditModal';
+import PaperDetailModal from '../components/library/Paperdetailmodal';
 import ChatPanel from '../components/chat/ChatPanel';
 import type { LibraryPaper } from '../types/paper';
 
 interface LibraryPageProps {
-  onPaperSelect?: (paper: LibraryPaper) => void;
   onClose?: () => void;
 }
 
 const LibraryPage: React.FC<LibraryPageProps> = ({
-  onPaperSelect,
   onClose
 }) => {
   // 상태 관리
@@ -24,6 +23,7 @@ const LibraryPage: React.FC<LibraryPageProps> = ({
   // UI 모드 및 모달 상태
   const [isUploadMode, setIsUploadMode] = useState(false);
   const [editingPaper, setEditingPaper] = useState<LibraryPaper | null>(null);
+  const [viewingPaper, setViewingPaper] = useState<LibraryPaper | null>(null);
 
   // 1. 논문 목록 불러오기
   const fetchPapers = async () => {
@@ -37,7 +37,7 @@ const LibraryPage: React.FC<LibraryPageProps> = ({
         id: doc.id || doc.doi, // UUID 사용
         title: doc.title,
         authors: doc.authors 
-          ? doc.authors.split(',').map((name: string) => ({ name: name.trim() })) 
+          ? doc.authors.split(',').map((name: string) => (name.trim())) 
           : [{ name: 'Unknown' }],
         type: 'paper',
         publicationDate: doc.published,
@@ -82,6 +82,10 @@ const LibraryPage: React.FC<LibraryPageProps> = ({
       totalAuthors: uniqueAuthors.size
     };
   }, [papers]);
+
+  const handlePaperClick = (paper: LibraryPaper, e: React.MouseEvent) => {
+      setViewingPaper(paper);
+  };
 
   // 핸들러: 삭제
   const handleDelete = async (paperId: string, e: React.MouseEvent) => {
@@ -225,7 +229,7 @@ const LibraryPage: React.FC<LibraryPageProps> = ({
                   <div
                     key={paper.id}
                     className="group bg-white rounded-xl shadow-sm border border-gray-200 hover:shadow-md hover:border-blue-300 transition-all duration-200 cursor-pointer flex flex-col"
-                    onClick={() => onPaperSelect?.(paper)}
+                    onClick={(e) => handlePaperClick(paper, e)}
                   >
                     <div className="p-6 flex-1">
                       {/* 논문 제목 */}
@@ -347,6 +351,12 @@ const LibraryPage: React.FC<LibraryPageProps> = ({
         paper={editingPaper}
         onClose={() => setEditingPaper(null)}
         onUpdateSuccess={handleUpdateSuccess}
+      />
+
+      <PaperDetailModal
+        isOpen={!!viewingPaper}
+        paper={viewingPaper}
+        onClose={() => setViewingPaper(null)}
       />
     </div>
   );
