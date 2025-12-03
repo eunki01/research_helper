@@ -10,6 +10,7 @@ interface MainLayoutProps {
   onNavigateToView?: (viewIndex: number) => void;
   onOpenLibrary?: () => void;
   //showSidebar?: boolean;
+  onNavigateToVisualization?: () => void;
   isAuthenticated?: boolean;
   currentUser?: User | null;
   onLogin?: () => void;
@@ -22,6 +23,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({
   onNavigateToView,
   onOpenLibrary,
   //showSidebar = false,
+  onNavigateToVisualization,
   isAuthenticated = false,
   currentUser = null,
   onLogin,
@@ -33,6 +35,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({
         visualizationState={visualizationState}
         onNavigateToView={onNavigateToView}
         onOpenLibrary={onOpenLibrary}
+        onNavigateToVisualization={onNavigateToVisualization}
         isAuthenticated={isAuthenticated}
         currentUser={currentUser}
         onLogin={onLogin}

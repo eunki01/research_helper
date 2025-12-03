@@ -8,6 +8,7 @@ interface HeaderProps {
   visualizationState?: VisualizationState;
   onNavigateToView?: (viewIndex: number) => void;
   onOpenLibrary?: () => void;
+  onNavigateToVisualization?: () => void;
   isAuthenticated?: boolean;
   currentUser?: User | null;
   onLogin?: () => void;
@@ -18,6 +19,7 @@ const Header: React.FC<HeaderProps> = ({
   visualizationState,
   onNavigateToView,
   onOpenLibrary,
+  onNavigateToVisualization,
   isAuthenticated = false,
   currentUser = null,
   onLogin,
@@ -26,6 +28,8 @@ const Header: React.FC<HeaderProps> = ({
   const { theme } = useTheme();
   console.log('Header - isAuthenticated:', isAuthenticated);
   console.log('Header - currentUser:', currentUser);
+
+  const hasVisualizationData = visualizationState && visualizationState.views.length > 0;
 
   return (
     <header 
@@ -54,6 +58,15 @@ const Header: React.FC<HeaderProps> = ({
         <div className="flex items-center gap-4">
           {isAuthenticated ? (
             <>
+              {hasVisualizationData && (
+                <button
+                  onClick={onNavigateToVisualization}
+                  className="px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors flex items-center gap-2"
+                >
+                  <span className="text-lg">🕸️</span>
+                  <span className="hidden sm:inline">그래프 보기</span>
+                </button>
+              )}
               {/* 라이브러리 버튼 */}
               <button
                 onClick={onOpenLibrary}

@@ -15,6 +15,7 @@ interface VisualizationPageProps {
   onNodeClick: (nodeId: string) => void;
   onNavigateToView?: (viewIndex: number) => void;
   onSearch?: (query: string, mode: SearchMode, selectedSeedPaper?: string, filters?: SearchFilters) => void;
+  onUpdateGraph?: (updatedGraph: any) => void;
 }
 
 const VisualizationPage: React.FC<VisualizationPageProps> = ({
@@ -22,7 +23,8 @@ const VisualizationPage: React.FC<VisualizationPageProps> = ({
   currentViewIndex,
   onNodeClick,
   onNavigateToView,
-  onSearch
+  onSearch,
+  onUpdateGraph
 }) => {
   const currentView = views[currentViewIndex];
 
@@ -79,13 +81,13 @@ const VisualizationPage: React.FC<VisualizationPageProps> = ({
   };
 
   const mergeGraphData = (newPapers: any[], sourceId: string, type: 'citation' | 'reference') => {
+    // 1. setState의 콜백 방식을 사용하여 최신 prev 상태를 보장받으며 로직 수행
     setGraphData(prev => {
       const existingNodeIds = new Set(prev.nodes.map(n => n.id));
       const newNodes: PaperNode[] = [];
       const newEdges: PaperEdge[] = [];
 
       newPapers.forEach((paper, _) => {
-        // 노드 추가 (중복 방지)
         if (!existingNodeIds.has(paper.paperId)) {
           newNodes.push({
             id: paper.paperId,
@@ -94,31 +96,39 @@ const VisualizationPage: React.FC<VisualizationPageProps> = ({
               ...paper,
               type: 'paper',
               label: paper.title,
-              id: paper.paperId // data 내부에도 id 포함
+              id: paper.paperId
             },
-            position: { x: 0, y: 0 }, // GraphComponent가 알아서 레이아웃 재배치
+            position: { x: 0, y: 0 },
             locked: false
           });
           existingNodeIds.add(paper.paperId);
         }
 
-        // 엣지 추가
         const edgeId = `${sourceId}-${paper.paperId}-${type}`;
+        // 엣지 중복 체크를 원하시면 여기에 로직 추가 (선택사항)
         newEdges.push({
           id: edgeId,
-          source: type === 'citation' ? paper.paperId : sourceId, // 인용: 타겟 -> 소스, 참고: 소스 -> 타겟
+          source: type === 'citation' ? paper.paperId : sourceId,
           target: type === 'citation' ? sourceId : paper.paperId,
-          // 엣지 타입을 'citation'으로 변경
           type: 'citation', 
-          similarity: 1.0 // 관계가 확실하므로 1.0 (스타일에는 영향 없음)
+          similarity: 1.0 
         });
       });
 
-      return {
+      // 2. 새로운 그래프 객체 생성
+      const nextGraph = {
         ...prev,
         nodes: [...prev.nodes, ...newNodes],
         edges: [...prev.edges, ...newEdges]
       };
+
+      // 3. [핵심] 부모 컴포넌트(App.tsx)로 변경된 그래프 전달 -> 서버 저장 트리거
+      if (onUpdateGraph) {
+        onUpdateGraph(nextGraph);
+      }
+
+      // 4. 로컬 UI 업데이트
+      return nextGraph;
     });
   };
 

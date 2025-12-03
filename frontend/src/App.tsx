@@ -391,6 +391,29 @@ const AppContent: React.FC = () => {
       );
     }
     
+const handleGraphUpdate = async (updatedGraph: any) => {
+      // 1. 현재 뷰의 그래프를 업데이트한 새로운 뷰 생성
+      const currentViewIndex = localVisualizationState.currentViewIndex;
+      const newViews = [...localVisualizationState.views];
+      
+      // 현재 보고 있는 뷰의 그래프 교체
+      newViews[currentViewIndex] = {
+        ...newViews[currentViewIndex],
+        graph: updatedGraph
+      };
+
+      const newState = {
+        ...localVisualizationState,
+        views: newViews
+      };
+
+      // 2. 로컬 상태 업데이트 (App 레벨)
+      setLocalVisualizationState(newState);
+
+      // 3. 서버 저장 (DB 반영)
+      await saveVisualizationStateToServer(newState);
+    };
+
     const currentView = localVisualizationState.views[localVisualizationState.currentViewIndex];
 
     if (!currentView) {
@@ -401,6 +424,8 @@ const AppContent: React.FC = () => {
       );
     }
 
+    
+
     return (
       <VisualizationPage
         key={currentView.id} 
@@ -409,6 +434,7 @@ const AppContent: React.FC = () => {
         onNodeClick={handleNodeClick}
         onNavigateToView={handleCarouselNavigation}
         onSearch={handleSearch}
+        onUpdateGraph={handleGraphUpdate}
       />
     );
   };
@@ -421,6 +447,15 @@ const AppContent: React.FC = () => {
     return renderCurrentPage();
   }
 
+  const handleNavigateToVisualization = () => {
+    // 뷰가 하나라도 있을 때만 이동
+    if (localVisualizationState.views.length > 0) {
+      setCurrentPage('visualization');
+    } else {
+      alert("생성된 시각화 그래프가 없습니다. 검색을 먼저 진행해주세요.");
+    }
+  };
+
   return (
     <MainLayout
       visualizationState={visualizationState}
@@ -428,6 +463,7 @@ const AppContent: React.FC = () => {
       onOpenLibrary={handleOpenLibrary}
       // 중복된 showSidebar 제거 및 로직 통합
       //showSidebar={currentPage === 'visualization'}
+      onNavigateToVisualization={handleNavigateToVisualization}
       onLogout={handleLogout}
       isAuthenticated={isAuthenticated}  
       currentUser={currentUser}          
