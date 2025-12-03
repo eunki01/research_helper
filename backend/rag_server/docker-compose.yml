@@ -17,5 +17,5 @@ services:
       CLUSTER_HOSTNAME: 'node1'
       # Hugging Face 모델 설정 (선택 사항: 원하는 모델로 변경 가능)
       # text2vec-huggingface 모듈을 사용하는 경우에 필요
-      HF_API_KEY: 'DUMMY_TOKEN_REPLACED' # API 키가 필요할 수 있습니다.
+      HF_API_KEY: '' # API 키가 필요할 수 있습니다.
       HF_MODEL: 'sentence-transformers/all-MiniLM-L6-v2'
