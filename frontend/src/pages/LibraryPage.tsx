@@ -70,13 +70,13 @@ const LibraryPage: React.FC<LibraryPageProps> = ({
     const lowerQuery = searchQuery.toLowerCase();
     return papers.filter(paper => 
       paper.title.toLowerCase().includes(lowerQuery) ||
-      paper.authors.some(a => a.name.toLowerCase().includes(lowerQuery))
+      paper.authors.some(a => a.toLowerCase().includes(lowerQuery))
     );
   }, [papers, searchQuery]);
 
   // 3. 통계 계산 (Memoization)
   const stats = useMemo(() => {
-    const uniqueAuthors = new Set(papers.flatMap(p => p.authors.map(a => a.name)));
+    const uniqueAuthors = new Set(papers.flatMap(p => p.authors));
     return {
       totalPapers: papers.length,
       totalAuthors: uniqueAuthors.size
@@ -239,7 +239,7 @@ const LibraryPage: React.FC<LibraryPageProps> = ({
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                         </svg>
                         <span className="truncate">
-                          {paper.authors.map(a => a.name).join(', ')}
+                          {paper.authors.join(', ')}
                         </span>
                       </div>
 

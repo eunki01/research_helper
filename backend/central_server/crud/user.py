@@ -16,7 +16,7 @@ async def create_user(db: AsyncSession, user: RegisterRequest):
     )
     
     db.add(db_user)
-    await db.commit()
+    await db.flush()
     await db.refresh(db_user)
     
     user_dto = UserDto(

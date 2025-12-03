@@ -74,14 +74,11 @@ const Sidebar: React.FC<SidebarProps> = ({
               <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-1">Authors</h3>
               <div className="space-y-1">
                 {selectedPaper.authors.map((author, idx) => (
-                  <div key={idx} className="text-sm text-gray-800">
-                    • <span className="font-medium">{author.name}</span>
-                    {author.affiliation && (
-                      <span className="text-gray-500 ml-1">({author.affiliation})</span>
-                    )}
-                  </div>
+                    <div key={idx} className="text-sm text-gray-800">
+                        • <span className="font-medium">{author}</span>
+                    </div>
                 ))}
-              </div>
+            </div>
             </div>
 
             {/* 메타 정보 */}

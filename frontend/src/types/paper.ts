@@ -3,7 +3,7 @@
 export interface Paper {
   id: string;
   title: string;
-  authors: Author[];
+  authors: string[];
   type: 'paper' | 'author';
   publicationDate?: string;
   abstract?: string;

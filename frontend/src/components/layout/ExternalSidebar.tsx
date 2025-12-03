@@ -135,7 +135,7 @@ const ExternalSidebar: React.FC<ExternalSidebarProps> = ({
             <div>
               <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-1">Authors</h3>
               <p className="text-sm text-gray-800">
-                {selectedPaper.authors.map(a => a.name).join(', ')}
+                {selectedPaper.authors.join(', ')}
               </p>
             </div>
           )}

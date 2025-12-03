@@ -57,6 +57,8 @@ async def create_new_user(user: RegisterRequest, db: AsyncSession = Depends(get_
     new_user = await create_user(db=db, user=user)
     if new_user:
       await _send_verification_email_logic(db, new_user.Email)
+      await db.commit()
+      await db.refresh(new_user)
     return new_user
 
 @router.post("/login", response_model=Token)

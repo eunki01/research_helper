@@ -125,7 +125,7 @@ export interface SemanticScholarResult {
   paperId: string;
   title: string;
   abstract?: string;
-  authors: Author[];
+  authors: string[];
   publicationDate?: string;
   openAccessPdf?: string;
   embedding?: EmbeddingResult;

@@ -138,12 +138,11 @@ export class SearchService {
    * ExternalReference를 Paper 타입으로 변환
    */
   private static transformExternalReferenceToPaper(ref: ExternalReference): Paper {
-    const authors: Author[] = ref.authors?.map(name => ({ name })) || [];
     
     return {
       id: ref.paperId,
       title: ref.title,
-      authors,
+      authors: ref.authors ?? [],
       publicationDate: ref.publicationDate,
       venue: ref.venue,
       citationCount: ref.citationCount,
@@ -159,7 +158,6 @@ export class SearchService {
    * InternalDocumentReference를 Paper 타입으로 변환
    */
   private static transformInternalReferenceToPaper(ref: InternalDocumentReference): Paper {
-    const authors: Author[] = ref.authors?.map(name => ({ name })) || [];
     
     // 청크 내용을 합쳐서 abstract로 사용
     const abstract = ref.chunks
@@ -170,7 +168,7 @@ export class SearchService {
     return {
       id: ref.paperId,
       title: ref.title,
-      authors,
+      authors: ref.authors ?? [],
       publicationDate: ref.publicationDate,
       venue: ref.venue,
       citationCount: ref.citationCount,

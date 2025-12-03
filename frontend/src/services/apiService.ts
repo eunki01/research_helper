@@ -93,7 +93,7 @@ export class ApiService {
     const payload = {
       paperId: paper.id, 
       title: paper.title,
-      authors: paper.authors.map(a => a.name),
+      authors: paper.authors,
       publicationDate: paper.publicationDate,
       abstract: paper.abstract,
       openAccessPdf: paper.openAccessPdf,
@@ -107,9 +107,16 @@ export class ApiService {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
     });
-
+    
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
+    if (response.status === 422 && errorData.detail && Array.isArray(errorData.detail)){
+        const detailedMessages = errorData.detail.map((err: any) => {
+        const location = err.loc ? err.loc.join('.') : 'Unknown field';
+        return `[${location}] ${err.msg}`;
+        }).join('\n');
+        throw new Error(detailedMessages || `저장 실패: ${response.status}`);
+      }
       throw new Error(errorData.detail || `저장 실패: ${response.status}`);
     }
   }
