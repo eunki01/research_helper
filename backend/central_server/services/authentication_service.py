@@ -9,11 +9,12 @@ from jwt.exceptions import (
 )
 from fastapi import Depends, HTTPException
 from datetime import datetime, timedelta
-from typing import Optional, Dict
+from typing import Optional, Dict, Any
 from core.config import settings
 from core.redis_config import get_redis_client
 from redis.asyncio import Redis
 from starlette import status
+from models.user_model import User
 import random
 import string
 import uuid
@@ -36,12 +37,13 @@ def create_token(data: dict, expires_delta: Optional[timedelta] = None, token_ty
   encoded_jwt = jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
   return encoded_jwt
 
-async def create_access_token_and_refresh_token(user_id: str) -> Dict[str, str]:
+async def create_access_token_and_refresh_token(user: User) -> Dict[str, Any]:
   jti = str(uuid.uuid4())
   
-  user_id_str = str(user_id)
+  user_id_str = str(user.UserId)
   
   access_token = create_token(data={"sub":user_id_str}, token_type="access")
+  print(access_token)
   
   refresh_token = create_token(data={"sub":user_id_str, "jti": jti}, token_type="refresh")
   print(jti, user_id_str)
@@ -51,6 +53,11 @@ async def create_access_token_and_refresh_token(user_id: str) -> Dict[str, str]:
     "access_token": access_token,
     "refresh_token": refresh_token,
     "token_type": "Bearer",
+    "user": {
+      "id": user_id_str,
+      "email": user.Email,
+      "name": user.Name,
+    }
   }
 
 def verify_token(token: str):

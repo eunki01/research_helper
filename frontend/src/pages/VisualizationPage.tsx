@@ -25,6 +25,9 @@ const VisualizationPage: React.FC<VisualizationPageProps> = ({
   onSearch
 }) => {
   const currentView = views[currentViewIndex];
+
+  if (!currentView) return <div className="flex items-center justify-center h-full text-gray-500">시각화 데이터가 없습니다.</div>;
+
   const [graphData, setGraphData] = useState(currentView.graph);
   
   const [chatContextPapers, setChatContextPapers] = useState<LibraryPaper[]>([]);
@@ -167,8 +170,6 @@ const VisualizationPage: React.FC<VisualizationPageProps> = ({
   const handlePaperRemove = (paperId: string) => {
     setChatContextPapers(prev => prev.filter(p => p.id !== paperId));
   };
-
-  if (!currentView) return <div className="flex items-center justify-center h-full text-gray-500">시각화 데이터가 없습니다.</div>;
 
   return (
     <div className="flex h-[calc(100vh-64px)] overflow-hidden bg-white relative">

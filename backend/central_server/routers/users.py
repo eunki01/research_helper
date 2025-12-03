@@ -8,6 +8,7 @@ from fastapi.security import OAuth2PasswordRequestForm
 from services.authentication_service import create_access_token_and_refresh_token, verify_token, generate_verification_token, verify_verification_token
 from crud.user import get_user_by_email, create_user, set_user_active_status
 from utils.encoder import verify_password
+from utils.get_current_user import get_current_user
 from schemas.token import Token
 from schemas.user_dto import UserDto
 from schemas.user_create import RegisterRequest
@@ -68,7 +69,15 @@ async def login(db: AsyncSession = Depends(get_db), form_data: OAuth2PasswordReq
     raise HTTPException(status_code=400, detail="Incorrect email or password")
   if not verify_password(form_data.password, user.PasswordHash):
     raise HTTPException(status_code=400, detail="Incorrect email or password")
-  return await create_access_token_and_refresh_token(user_id=user.UserId)
+  return await create_access_token_and_refresh_token(user=user)
+
+@router.get("/verify")
+async def verify_token(db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user)):
+  user = await get_user_by_email(db, current_user.Email)
+  if not user:
+    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+  return {'message': '유효한 토큰'}
+    
 
 async def _send_verification_email_logic(db: AsyncSession, email: str):
     stmt = select(user_model.User).where(user_model.User.Email == email)

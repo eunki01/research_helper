@@ -1,4 +1,5 @@
 // API 명세서 기반 타입 정의
+import type { VisualizationView } from "./visualization";
 
 // ==================== 채팅 관련 ====================
 export interface Message {
@@ -135,3 +136,22 @@ export interface SemanticScholarResult {
   fieldsOfStudy?: string[];
 }
 
+// ======== 검색 이력 저장 =======
+
+export interface SaveVisualizationStateRequest {
+  currentViewIndex: number;
+  views: VisualizationView[];
+  maxViews: number;
+}
+
+export interface SaveVisualizationStateResponse {
+  message: string;
+  currentViewIndex: number;
+  viewCount: number;
+}
+
+export interface VisualizationStateResponse {
+  currentViewIndex: number;
+  views: VisualizationView[];
+  maxViews: number;
+}

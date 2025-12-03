@@ -3,7 +3,6 @@ export interface User {
   id: string;
   email: string;
   name: string;
-  createdAt: string;
 }
 
 // 로그인 요청 타입
@@ -27,7 +26,9 @@ export interface RegisterRequest {
 }
 
 export interface AuthResponse {
-  token: string;
+  access_token: string;
+  refresh_token: string;
+  token_type: string;
   user: User;
 }
 

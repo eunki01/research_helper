@@ -19,3 +19,6 @@ class User(Base):
     # Relationships
     collections: Mapped[List['Collection']] = relationship(back_populates="user")
     collected_papers: Mapped[List['CollectionPaper']] = relationship(back_populates="user")
+    visualization_state: Mapped[Optional["UserVisualizationState"]] = relationship(
+        back_populates="user", uselist=False, cascade="all, delete-orphan"
+    )

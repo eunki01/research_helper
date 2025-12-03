@@ -13,7 +13,8 @@ import ApiService from './services/apiService';
 import SearchService from './services/searchService';
 import { ThemeProvider, useTheme } from './context/ThemeContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
-import type { VisualizationState } from './types/visualization';
+import { useVisualizationState } from './hooks/visualization';
+import type { VisualizationState, VisualizationView } from './types/visualization';
 import type { SearchMode, SearchFilters } from './types/search';
 
 // App 컴포넌트를 테마 컨텍스트로 감싸기
@@ -24,7 +25,15 @@ const AppContent: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [pendingVerificationEmail, setPendingVerificationEmail] = useState<string>('');
   const [verificationToken, setVerificationToken] = useState<string>('');
-  const [visualizationState, setVisualizationState] = useState<VisualizationState>({
+  const {
+    state: visualizationState,
+    loading: visualizationLoading,
+    error: visualizationError,
+    loadState: loadVisualizationState,
+    saveState: saveVisualizationState
+  } = useVisualizationState();
+
+  const [localVisualizationState, setLocalVisualizationState] = useState<VisualizationState>({
     currentViewIndex: 0,
     views: [],
     maxViews: 20
@@ -42,14 +51,28 @@ const AppContent: React.FC = () => {
     };
   };
 
-  // 로그인 상태 체크 Effect
+  // 서버에서 불러온 상태를 로컬 상태에 동기화
   useEffect(() => {
-    if (!isAuthenticated && 
-        currentPage !== 'login' && 
-        currentPage !== 'register' && 
-        currentPage !== 'verify-email' && 
-        currentPage !== 'verification-pending') {
+    if (visualizationState && visualizationState.views.length > 0) {
+      setLocalVisualizationState(visualizationState);
+    }
+  }, [visualizationState]);
+
+  // 로그인 상태 체크 및 시각화 상태 로드
+  useEffect(() => {
+    if (!isAuthenticated &&
+      currentPage !== 'login' && 
+      currentPage !== 'register' && 
+      currentPage !== 'verify-email' && 
+      currentPage !== 'verification-pending'
+    ) {
       setCurrentPage('login');
+      // 로그아웃 시 로컬 상태 초기화
+      setLocalVisualizationState({
+        currentViewIndex: 0,
+        views: [],
+        maxViews: 20
+      });
     }
   }, [isAuthenticated, currentPage]);
 
@@ -67,6 +90,12 @@ const AppContent: React.FC = () => {
   // 로그인 처리
   const handleLogin = async (email: string, password: string) => {
     await login(email, password);
+    
+    try {
+        await loadVisualizationState(); 
+    } catch (err) {
+        console.error('Initial visualization state load failed after login:', err);
+    }
     setCurrentPage('home');
   };
 
@@ -96,11 +125,21 @@ const AppContent: React.FC = () => {
   const handleLogout = () => {
     logout();
     setCurrentPage('login');
-    setVisualizationState({
+    setLocalVisualizationState({
       currentViewIndex: 0,
       views: [],
       maxViews: 20
     });
+  };
+
+  // 시각화 상태를 서버에 저장하는 헬퍼 함수
+  const saveVisualizationStateToServer = async (newState: VisualizationState) => {
+    try {
+      await saveVisualizationState(newState);
+    } catch (error) {
+      console.error('Failed to save visualization state:', error);
+      // 저장 실패해도 로컬 상태는 유지
+    }
   };
 
   // 검색 실행 (중복 제거됨)
@@ -128,10 +167,6 @@ const AppContent: React.FC = () => {
            'internal', 
            selectedSeedPaper
          );
-         
-         setVisualizationState({ currentViewIndex: 0, views: [view], maxViews: 20 });
-         setCurrentPage('visualization');
-         return; 
       }
 
       // 2. 텍스트 기반 검색
@@ -148,30 +183,38 @@ const AppContent: React.FC = () => {
         );
       }
       
-      // 뷰 업데이트 로직
-      setVisualizationState(prev => {
-        // 이미 시각화 페이지에 있고, 같은 모드에서 검색한 경우 -> 히스토리에 추가
-        if (currentPage === 'visualization' && prev.views.length > 0) {
-          const newViews = [...prev.views, view];
-          // 최대 개수 제한
-          if (newViews.length > prev.maxViews) {
-            newViews.shift();
+      // 새로운 상태 계산
+      const newState = (() => {
+        // 수정 전: if (currentPage === 'visualization' && localVisualizationState.views.length > 0)
+        // 수정 후: 페이지 상관없이 기존 뷰가 하나라도 있다면 '추가(Append)' 모드로 동작
+        if (localVisualizationState.views.length > 0) {
+          const newViews = [...localVisualizationState.views, view];
+          
+          // 최대 개수 제한 (가장 오래된 것 제거)
+          if (newViews.length > localVisualizationState.maxViews) {
+            newViews.shift(); 
           }
           
           return {
-            ...prev,
-            currentViewIndex: newViews.length - 1, // 가장 최신 뷰로 이동
+            ...localVisualizationState,
+            currentViewIndex: newViews.length - 1, // 방금 추가한 맨 끝 뷰로 이동
             views: newViews
           };
         }
         
-        // 홈에서 검색하거나 모드가 바뀐 경우 -> 초기화
+        // 기존 뷰가 아예 없을 때만 새로 생성
         return {
           currentViewIndex: 0,
           views: [view],
-          maxViews: 20
+          maxViews: localVisualizationState.maxViews || 20
         };
-      });
+      })();
+
+      // 로컬 상태 업데이트 (즉시 UI 반영)
+      setLocalVisualizationState(newState);
+      
+      // 서버에 저장 (백그라운드)
+      saveVisualizationStateToServer(newState);
 
       setCurrentPage('visualization');
     } catch (error) {
@@ -199,31 +242,41 @@ const AppContent: React.FC = () => {
       const mode = currentView.graph.searchMode || 'external';
       
       let response;
+      let newView: VisualizationView;
+
       if (mode === 'external') {
         response = await ApiService.searchExternal(query, 5);
-        const newView = SearchService.transformExternalToVisualizationView(
+        newView = SearchService.transformExternalToVisualizationView(
           response, query, mode, nodeId, currentView.breadcrumbPath
         );
-        
-        const newViews = [...visualizationState.views];
-        const insertIndex = visualizationState.currentViewIndex + 1;
-        if (newViews.length >= visualizationState.maxViews) newViews.shift();
-        newViews.splice(insertIndex, 0, newView);
-        
-        setVisualizationState({ ...visualizationState, views: newViews, currentViewIndex: insertIndex });
       } else {
         response = await ApiService.searchInternal(query, 5, 0.7);
-        const newView = SearchService.transformInternalToVisualizationView(
+        newView = SearchService.transformInternalToVisualizationView(
           response, query, mode, nodeId, currentView.breadcrumbPath
         );
-        
-        const newViews = [...visualizationState.views];
-        const insertIndex = visualizationState.currentViewIndex + 1;
-        if (newViews.length >= visualizationState.maxViews) newViews.shift();
-        newViews.splice(insertIndex, 0, newView);
-        
-        setVisualizationState({ ...visualizationState, views: newViews, currentViewIndex: insertIndex });
       }
+      // 새로운 상태 계산
+      const newViews = [...localVisualizationState.views];
+      const insertIndex = localVisualizationState.currentViewIndex + 1;
+      
+      // 최대 개수 제한
+      if (newViews.length >= localVisualizationState.maxViews) {
+        newViews.shift();
+      }
+      
+      newViews.splice(insertIndex, 0, newView);
+      
+      const newState = {
+        ...localVisualizationState,
+        views: newViews,
+        currentViewIndex: insertIndex
+      };
+      
+      // 로컬 상태 업데이트
+      setLocalVisualizationState(newState);
+      
+      // 서버에 저장
+      saveVisualizationStateToServer(newState);
       
     } catch (error) {
       console.error('Node expansion failed:', error);
@@ -235,20 +288,29 @@ const AppContent: React.FC = () => {
 
   const handleBreadcrumbNavigation = (breadcrumbIndex: number) => {
     const viewIndex = breadcrumbIndex - 1;
+    
     if (viewIndex < 0) {
       setCurrentPage('home');
-      setVisualizationState({ currentViewIndex: 0, views: [], maxViews: 20 });
       return;
     }
-    setVisualizationState(prev => ({
-      ...prev,
+    
+    const newState = {
+      ...localVisualizationState,
       currentViewIndex: viewIndex,
-      views: prev.views.slice(0, viewIndex + 1)
-    }));
+      views: localVisualizationState.views.slice(0, viewIndex + 1)
+    };
+    
+    setLocalVisualizationState(newState);
+    saveVisualizationStateToServer(newState);
   };
 
   const handleCarouselNavigation = (viewIndex: number) => {
-    setVisualizationState(prev => ({ ...prev, currentViewIndex: viewIndex }));
+    const newState = {
+      ...localVisualizationState,
+      currentViewIndex: viewIndex
+    };
+    
+    setLocalVisualizationState(newState);
   };
 
   const handleModeChange = (mode: SearchMode) => {
@@ -329,13 +391,21 @@ const AppContent: React.FC = () => {
       );
     }
     
-    const currentView = visualizationState.views[visualizationState.currentViewIndex];
+    const currentView = localVisualizationState.views[localVisualizationState.currentViewIndex];
+
+    if (!currentView) {
+      return (
+        <div className="flex items-center justify-center h-full text-gray-500">
+          <p>불러오는 중이거나 표시할 시각화 데이터가 없습니다.</p>
+        </div>
+      );
+    }
 
     return (
       <VisualizationPage
-        key={currentView?.id}
-        views={visualizationState.views}
-        currentViewIndex={visualizationState.currentViewIndex}
+        key={currentView.id} 
+        views={localVisualizationState.views}
+        currentViewIndex={localVisualizationState.currentViewIndex}
         onNodeClick={handleNodeClick}
         onNavigateToView={handleCarouselNavigation}
         onSearch={handleSearch}

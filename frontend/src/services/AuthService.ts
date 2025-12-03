@@ -3,7 +3,8 @@ import type { RegisterRequest, AuthResponse, User } from '../types/auth';
 const API_BASE_URL = 'http://localhost:8000';
 
 export class AuthService {
-  private static TOKEN_KEY = 'auth_token';
+  private static ACCESS_TOKEN_KEY = 'accessToken';
+  private static REFRESH_TOKEN_KEY = 'refreshToken';
 
   // 로그인
   static async login(email: string, password: string): Promise<AuthResponse> {
@@ -73,18 +74,26 @@ export class AuthService {
   }
 
   // 토큰 저장
-  static setToken(token: string): void {
-    localStorage.setItem(this.TOKEN_KEY, token);
+  static setAccessToken(token: string): void {
+    localStorage.setItem(this.ACCESS_TOKEN_KEY, token);
+  }
+
+  static setRefreshToken(token: string): void{
+    localStorage.setItem(this.REFRESH_TOKEN_KEY, token);
   }
 
   // 토큰 가져오기
-  static getToken(): string | null {
-    return localStorage.getItem(this.TOKEN_KEY);
+  static getAccessToken(): string | null {
+    return localStorage.getItem(this.ACCESS_TOKEN_KEY);
+  }
+
+  static getRefreshToken(): string | null {
+    return localStorage.getItem(this.REFRESH_TOKEN_KEY);
   }
 
   // 토큰 삭제 (로그아웃)
   static logout(): void {
-    localStorage.removeItem(this.TOKEN_KEY);
+    localStorage.removeItem(this.ACCESS_TOKEN_KEY);
   }
 
   static async verifyEmail(token: string): Promise<void> {
@@ -124,7 +133,7 @@ export class AuthService {
 
   // 인증된 요청을 위한 헤더 생성
   static getAuthHeaders(): HeadersInit {
-    const token = this.getToken();
+    const token = this.getAccessToken();
     return {
       'Content-Type': 'application/json',
       ...(token && { 'Authorization': `Bearer ${token}` }),

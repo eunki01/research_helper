@@ -19,7 +19,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   // 앱 시작시 로그인 상태 확인
   useEffect(() => {
     const checkAuth = async () => {
-      const token = AuthService.getToken();
+      const token = AuthService.getAccessToken();
       
       if (token) {
         try {
@@ -44,7 +44,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       const response = await AuthService.login(email, password);
       
-      AuthService.setToken(response.token);
+      AuthService.setAccessToken(response.access_token);
+      AuthService.setRefreshToken(response.refresh_token);
       setIsAuthenticated(true);
       setCurrentUser(response.user);
     } catch (error) {
@@ -54,7 +55,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setIsLoading(false);
     }
   };
-
+  
   const register = async (email: string, password: string, name: string) => {
     setIsLoading(true);
     
