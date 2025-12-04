@@ -313,6 +313,48 @@ const AppContent: React.FC = () => {
     setLocalVisualizationState(newState);
   };
 
+  const handleDeleteView = async (viewId: string) => {
+    const oldViews = localVisualizationState.views;
+    const currentIndex = localVisualizationState.currentViewIndex;
+    
+    // 1. 삭제 대상 뷰의 인덱스 찾기
+    const targetIndex = oldViews.findIndex(v => v.id === viewId);
+    if (targetIndex === -1) return;
+
+    // 2. 뷰 삭제 (새 배열 생성)
+    const newViews = oldViews.filter(v => v.id !== viewId);
+
+    // 3. 뷰가 하나도 안 남았다면? -> 홈으로 이동
+    if (newViews.length === 0) {
+      const emptyState = { currentViewIndex: 0, views: [], maxViews: 20 };
+      setLocalVisualizationState(emptyState);
+      saveVisualizationStateToServer(emptyState);
+      setCurrentPage('home');
+      return;
+    }
+
+    // 4. 인덱스 조정 로직
+    let newIndex = currentIndex;
+
+    if (targetIndex === currentIndex) {
+      // 현재 보고 있는 뷰를 삭제한 경우: 이전 뷰(왼쪽)를 보여줌. 없으면 0번.
+      newIndex = Math.max(0, currentIndex - 1);
+    } else if (targetIndex < currentIndex) {
+      // 내 앞의 뷰가 삭제된 경우: 인덱스를 1 당김
+      newIndex = currentIndex - 1;
+    }
+    // 내 뒤의 뷰가 삭제된 경우: 인덱스 유지 (newIndex = currentIndex)
+
+    const newState = {
+      ...localVisualizationState,
+      views: newViews,
+      currentViewIndex: newIndex
+    };
+
+    setLocalVisualizationState(newState);
+    await saveVisualizationStateToServer(newState);
+  };
+
   const handleModeChange = (mode: SearchMode) => {
     setSearchMode(mode);
   };
@@ -435,6 +477,7 @@ const handleGraphUpdate = async (updatedGraph: any) => {
         onNavigateToView={handleCarouselNavigation}
         onSearch={handleSearch}
         onUpdateGraph={handleGraphUpdate}
+        onDeleteView={handleDeleteView}
       />
     );
   };

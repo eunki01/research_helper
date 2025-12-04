@@ -10,6 +10,7 @@ interface SearchHistoryPanelProps {
   onNavigate: (index: number) => void;
   onSearch: (query: string, filters?: SearchFilters) => void;
   onClose?: () => void;
+  onDelete?: (viewId: string) => void;
   className?: string;
 }
 
@@ -19,6 +20,7 @@ const SearchHistoryPanel: React.FC<SearchHistoryPanelProps> = ({
   onNavigate,
   onSearch,
   onClose,
+  onDelete,
   className = ''
 }) => {
   const currentView = views[currentViewIndex];
@@ -190,7 +192,7 @@ const SearchHistoryPanel: React.FC<SearchHistoryPanelProps> = ({
                <div
                 key={view.id}
                 onClick={() => onNavigate(realIndex)}
-                className={`p-3 rounded-xl border transition-all cursor-pointer hover:shadow-md relative overflow-hidden ${
+                className={`p-3 rounded-xl border transition-all cursor-pointer hover:shadow-md relative overflow-hidden group ${
                   isCurrent
                     ? 'bg-white border-blue-500 shadow-sm ring-1 ring-blue-500'
                     : 'bg-white border-gray-200 hover:border-blue-300'
@@ -200,29 +202,49 @@ const SearchHistoryPanel: React.FC<SearchHistoryPanelProps> = ({
                   <div className="absolute left-0 top-0 bottom-0 w-1 bg-blue-500"></div>
                 )}
                 
-                <div className="flex justify-between items-start mb-1 pl-1">
-                  <h3 className={`font-semibold text-sm line-clamp-1 ${isCurrent ? 'text-blue-700' : 'text-gray-800'}`} title={view.query}>
-                    {view.query}
-                  </h3>
-                  <span className="text-xs text-gray-400 flex-shrink-0 ml-2">
-                    {new Date(view.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                  </span>
-                </div>
-                
-                <p className="text-xs text-gray-500 mb-1 pl-1">
-                  <span className="inline-flex items-center mr-2">
-                    <span className="w-1.5 h-1.5 rounded-full bg-slate-400 mr-1"></span>
-                    논문 {view.graph.nodes.filter(n => n.type === 'paper').length}개
-                  </span>
-                  <span className="inline-flex items-center">
-                    <span className="w-1.5 h-1.5 rounded-full bg-slate-300 mr-1"></span>
-                    관계 {view.graph.edges.length}개
-                  </span>
-                </p>
+                <div className="pr-6"> 
+                  <div className="flex justify-between items-start mb-1 pl-1">
+                    <h3 className={`font-semibold text-sm line-clamp-1 ${isCurrent ? 'text-blue-700' : 'text-gray-800'}`} title={view.query}>
+                      {view.query}
+                    </h3>
+                    <span className="text-xs text-gray-400 flex-shrink-0 ml-2">
+                      {new Date(view.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </span>
+                  </div>
+                  
+                  <p className="text-xs text-gray-500 mb-1 pl-1">
+                    <span className="inline-flex items-center mr-2">
+                      <span className="w-1.5 h-1.5 rounded-full bg-slate-400 mr-1"></span>
+                      논문 {view.graph.nodes.filter(n => n.type === 'paper').length}개
+                    </span>
+                    <span className="inline-flex items-center">
+                      <span className="w-1.5 h-1.5 rounded-full bg-slate-300 mr-1"></span>
+                      관계 {view.graph.edges.length}개
+                    </span>
+                  </p>
 
-                <div className="pl-1">
-                  {renderFilterBadges(view.filters)}
+                  <div className="pl-1">
+                    {renderFilterBadges(view.filters)}
+                  </div>
                 </div>
+
+                {/* 2. [추가] 삭제 버튼 (우측 상단, Hover시에만 표시) */}
+                {onDelete && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation(); // 카드 클릭(이동) 이벤트 방지
+                      if (window.confirm('이 검색 기록을 삭제하시겠습니까?')) {
+                        onDelete(view.id);
+                      }
+                    }}
+                    className="absolute top-2 right-2 p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-200 z-10"
+                    title="기록 삭제"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                  </button>
+                )}
               </div>
              );
           })

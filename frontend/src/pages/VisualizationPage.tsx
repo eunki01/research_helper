@@ -16,6 +16,7 @@ interface VisualizationPageProps {
   onNavigateToView?: (viewIndex: number) => void;
   onSearch?: (query: string, mode: SearchMode, selectedSeedPaper?: string, filters?: SearchFilters) => void;
   onUpdateGraph?: (updatedGraph: any) => void;
+  onDeleteView?: (viewId: string) => void;
 }
 
 const VisualizationPage: React.FC<VisualizationPageProps> = ({
@@ -24,7 +25,8 @@ const VisualizationPage: React.FC<VisualizationPageProps> = ({
   onNodeClick,
   onNavigateToView,
   onSearch,
-  onUpdateGraph
+  onUpdateGraph,
+  onDeleteView
 }) => {
   const currentView = views[currentViewIndex];
 
@@ -205,6 +207,7 @@ const VisualizationPage: React.FC<VisualizationPageProps> = ({
                 }}
                 onClose={() => setIsChatOpen(false)}
                 className="h-full"
+                onDelete={onDeleteView}
               />
           </div>
         ) : (
