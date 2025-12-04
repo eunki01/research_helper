@@ -82,7 +82,7 @@ export class LibraryService {
     return papers.filter(paper => 
       paper.title.toLowerCase().includes(lowercaseQuery) ||
       paper.authors.some(author => 
-        author.name.toLowerCase().includes(lowercaseQuery)
+        author.toLowerCase().includes(lowercaseQuery)
       ) ||
       paper.abstract?.toLowerCase().includes(lowercaseQuery) ||
       paper.fieldsOfStudy?.some(field => 
@@ -120,7 +120,7 @@ export class LibraryService {
     }
 
     const allAuthors = papers.flatMap(paper => paper.authors);
-    const uniqueAuthors = new Set(allAuthors.map(author => author.name));
+    const uniqueAuthors = new Set(allAuthors.map(author => author));
     
     const allFields = papers.flatMap(paper => paper.fieldsOfStudy || []);
     const uniqueFields = Array.from(new Set(allFields));

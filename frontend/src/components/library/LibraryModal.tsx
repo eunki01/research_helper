@@ -62,7 +62,7 @@ const LibraryModal: React.FC<LibraryModalProps> = ({
 
   const filteredPapers = papers.filter(paper => 
     paper.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    paper.authors.some(a => a.name.toLowerCase().includes(searchQuery.toLowerCase()))
+    paper.authors.some(a => a.toLowerCase().includes(searchQuery.toLowerCase()))
   );
 
   const handleUploadSuccess = () => {
@@ -183,7 +183,7 @@ const LibraryModal: React.FC<LibraryModalProps> = ({
                               <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                               </svg>
-                              {paper.authors[0]?.name || 'Unknown'}
+                              {paper.authors[0]}
                               {paper.authors.length > 1 && ` 외 ${paper.authors.length - 1}명`}
                             </span>
                             {paper.publicationDate && (

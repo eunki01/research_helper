@@ -13,7 +13,7 @@ import type {
   BreadcrumbItem
 } from '../types/visualization';
 import type { SearchMode, SearchFilters } from '../types/search';
-import type { Paper, Author } from '../types/paper';
+import type { Paper } from '../types/paper';
 
 export class SearchService {
   /**

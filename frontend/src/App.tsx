@@ -26,9 +26,7 @@ const AppContent: React.FC = () => {
   const [pendingVerificationEmail, setPendingVerificationEmail] = useState<string>('');
   const [verificationToken, setVerificationToken] = useState<string>('');
   const {
-    state: visualizationState,
-    loading: visualizationLoading,
-    error: visualizationError,
+    state: visualizationState,    
     loadState: loadVisualizationState,
     saveState: saveVisualizationState
   } = useVisualizationState();

@@ -83,7 +83,7 @@ const LibraryPage: React.FC<LibraryPageProps> = ({
     };
   }, [papers]);
 
-  const handlePaperClick = (paper: LibraryPaper, e: React.MouseEvent) => {
+  const handlePaperClick = (paper: LibraryPaper) => {
       setViewingPaper(paper);
   };
 
@@ -229,7 +229,7 @@ const LibraryPage: React.FC<LibraryPageProps> = ({
                   <div
                     key={paper.id}
                     className="group bg-white rounded-xl shadow-sm border border-gray-200 hover:shadow-md hover:border-blue-300 transition-all duration-200 cursor-pointer flex flex-col"
-                    onClick={(e) => handlePaperClick(paper, e)}
+                    onClick={() => handlePaperClick(paper)}
                   >
                     <div className="p-6 flex-1">
                       {/* 논문 제목 */}
