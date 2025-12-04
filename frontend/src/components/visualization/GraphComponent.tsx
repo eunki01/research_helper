@@ -257,7 +257,7 @@ const GraphComponent: React.FC<GraphComponentProps> = ({
 
     const nodeData = node.data();
     const authorNames = Array.isArray(nodeData.authors) 
-      ? nodeData.authors.map((a: any) => a.name).join(', ') 
+      ? nodeData.authors.map((a: any) => a).join(', ') 
       : (nodeData.authors || 'N/A');
 
     setTooltip({ 

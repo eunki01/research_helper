@@ -30,9 +30,27 @@ const LibraryModal: React.FC<LibraryModalProps> = ({
       const libraryPapers: LibraryPaper[] = docs.map((doc: any, index: number) => ({
         id: doc.id || doc.doi || `doc-${index}`, // id 호환성 체크
         title: doc.title,
-        authors: doc.authors 
-          ? (typeof doc.authors === 'string' ? [{ name: doc.authors }] : doc.authors) // 저자 형식 호환성
-          : [{ name: 'Unknown' }],
+        authors: (() => {
+          const authorsData = doc.authors;
+
+          // 1. 배열인 경우 (문자열 배열이든 객체 배열이든 처리)
+          if (Array.isArray(authorsData)) {
+              return authorsData
+                  .map((author: any) => (
+                      // 배열 요소가 객체라면 .name 속성을 추출하고, 문자열이라면 그대로 사용
+                      typeof author === 'string' ? author : author?.name
+                  ))
+                  .filter(Boolean); // 유효한 (빈 값이 아닌) 이름만 필터링하여 문자열 배열을 만듭니다.
+          } 
+          
+          // 2. 단일 문자열인 경우
+          if (typeof authorsData === 'string') {
+              return [authorsData];
+          }
+          
+          // 3. 데이터가 없거나 예상치 못한 형식인 경우
+          return ['Unknown'];
+        })(),
         type: 'paper',
         publicationDate: doc.published,
         abstract: doc.content,

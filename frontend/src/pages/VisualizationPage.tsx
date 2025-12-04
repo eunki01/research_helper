@@ -47,7 +47,7 @@ const VisualizationPage: React.FC<VisualizationPageProps> = ({
     title: nodeData.title || nodeData.label || 'Unknown Title',
     authors: Array.isArray(nodeData.authors) 
       ? nodeData.authors 
-      : (nodeData.authors ? [{ name: nodeData.authors }] : []),
+      : (nodeData.authors ? [nodeData.authors] : []),
     type: nodeData.type || 'paper',
     publicationDate: nodeData.publicationDate,
     abstract: nodeData.abstract,
