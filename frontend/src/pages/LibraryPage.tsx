@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import ApiService from '../services/apiService';
 import PaperUploadForm from '../components/library/PaperUploadForm';
+import PaperDetailModal from '../components/library/PaperDetailModal';
 import PaperEditModal from '../components/library/PaperEditModal';
-import PaperDetailModal from '../components/library/Paperdetailmodal';
 import ChatPanel from '../components/chat/ChatPanel';
 import type { LibraryPaper } from '../types/paper';
 
