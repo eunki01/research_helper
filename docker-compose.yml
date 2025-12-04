@@ -1,0 +1,47 @@
+version: '3.8'
+
+services:
+  # [1] Caddy (메인 웹 서버 & 로드밸런서)
+  caddy:
+    image: caddy:latest
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      # 소스 코드 내의 Caddyfile 경로를 맞춰주세요 (예: backend/central_server/Caddyfile)
+      - ./backend/central_server/Caddyfile:/etc/caddy/Caddyfile
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - central-server
+      - rag-server
+      - ss-api-server
+
+  # [2] Central Server (기존 8000번)
+  central-server:
+    build: ./backend/central_server
+    container_name: central-server-running
+    env_file: .env  # 젠킨스가 만들어줄 환경변수 파일
+    expose:
+      - "8000"      # 외부 노출 X, Caddy랑만 통신
+
+  # [3] RAG Server (기존 8001번)
+  rag-server:
+    build: ./backend/rag_server
+    container_name: rag-server-running
+    env_file: .env
+    expose:
+      - "8001"
+
+  # [4] SS API Server (기존 8002번)
+  ss-api-server:
+    build: ./backend/ss_api_server
+    container_name: ss-api-server-running
+    env_file: .env
+    expose:
+      - "8002"
+
+volumes:
+  caddy_data:
+  caddy_config:

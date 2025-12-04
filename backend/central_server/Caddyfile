@@ -1,7 +1,7 @@
 www.research-helper.o-r.kr {
     
-    reverse_proxy localhost:8000
+    reverse_proxy central-server:8000
 }
-chat.research-helper.o-r.kr {
-    reverse_proxy localhost:8001
+doc.research-helper.o-r.kr {
+    reverse_proxy rag_server:8001
 }
