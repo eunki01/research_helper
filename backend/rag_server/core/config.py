@@ -13,7 +13,7 @@ class Settings(BaseSettings):
 
     # Weaviate 설정
     WEAVIATE_HOST: str = "localhost"
-    WEAVIATE_PORT: int = 8080
+    WEAVIATE_PORT: int = 8090
     WEAVIATE_GRPC_PORT: int = 50051
 
     # 임베딩 모델 설정
